@@ -1,31 +1,100 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
+import { View } from "../../components/Themed";
+import { Avatar, Button, List } from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Text } from "react-native-paper";
+import { FlatList } from "react-native-gesture-handler";
 
-import EditScreenInfo from '../../components/EditScreenInfo';
-import { Text, View } from '../../components/Themed';
+const threeBestJumps = [
+  {
+    name: "Broad",
+    best: 69,
+    unit: "in",
+  },
+  {
+    name: "Vertical",
+    best: 42,
+    unit: "in",
+  },
+  {
+    name: "High",
+    best: 106,
+    unit: "in",
+  },
+];
 
-export default function TabOneScreen() {
+export default function Home() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
-    </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.avatarContainer}>
+        <Avatar.Icon icon="account" />
+      </View>
+      <Text variant="headlineLarge" style={styles.title}>
+        Good Morning, User
+      </Text>
+      <Text variant="bodyLarge">Stay on track and keep progressing</Text>
+      <View style={styles.btnContainer}>
+        <Button mode="contained">Continue training</Button>
+      </View>
+      <View style={styles.contentContainer}>
+        <Text variant="titleMedium" style={styles.contentTitle}>
+          Top Jumps
+        </Text>
+        <View style={styles.content}>
+          <FlatList
+            data={threeBestJumps}
+            keyExtractor={(item) => item.name}
+            renderItem={({ item }) => (
+              <List.Item
+                title={item.name}
+                style={styles.listItem}
+                left={() => <List.Icon icon="shoe-sneaker" />}
+                right={() => (
+                  <Text>
+                    {item.best} {item.unit}
+                  </Text>
+                )}
+              />
+            )}
+          />
+        </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 12,
+    backgroundColor: "#F4F6FA",
+  },
+  avatarContainer: {
+    flexDirection: "row",
+    alignContent: "flex-end",
+    justifyContent: "flex-end",
+  },
+  btnContainer: {
+    paddingVertical: 24,
+  },
+  contentContainer: {
+    marginTop: 12,
+    padding: 12,
+  },
+  contentTitle: {
+    fontWeight: "bold",
+    marginBottom: 12,
+  },
+  content: {
+    backgroundColor: "white",
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
+    paddingBottom: 12,
   },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
+  listItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#EDEDED",
   },
 });
