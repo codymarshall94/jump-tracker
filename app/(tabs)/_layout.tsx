@@ -35,7 +35,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="train"
         options={{
-          title: "Train",
+          title: "Training Session",
+          headerTitleAlign: "center",
           headerRight: () => (
             <Pressable>
               <Text
