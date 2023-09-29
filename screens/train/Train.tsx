@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { Button } from "react-native-paper";
+import { Button, useTheme } from "react-native-paper";
 import RepList from "./components/repList/RepList";
 
 interface JumpAttempt {
@@ -16,6 +16,7 @@ const initialJumpAttempts = Array.from({ length: 5 }, (_, index) => ({
 }));
 
 export default function Train() {
+  const theme = useTheme();
   const maxInputLength = 3;
   const [jumpAttempts, setJumpAttempts] =
     useState<JumpAttempt[]>(initialJumpAttempts);
@@ -62,8 +63,12 @@ export default function Train() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Broad Jump</Text>
+    <ScrollView
+      style={{ ...styles.container, backgroundColor: theme.colors.background }}
+    >
+      <Text style={{ ...styles.title, color: theme.colors.onBackground }}>
+        Broad Jump
+      </Text>
       <View style={styles.attemptsContainer}>
         <View style={styles.attemptsHeader}>
           <Text style={styles.attemptsHeaderText}>Rep</Text>
@@ -91,10 +96,8 @@ export default function Train() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F4F6FA",
   },
   attemptsContainer: {
-    backgroundColor: "#fff",
     padding: 12,
     gap: 4,
   },
@@ -112,7 +115,6 @@ const styles = StyleSheet.create({
     color: "#A3A4A6",
   },
   title: {
-    backgroundColor: "#fff",
     fontSize: 20,
     fontWeight: "bold",
     textAlign: "center",

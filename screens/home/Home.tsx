@@ -1,102 +1,94 @@
-import { StyleSheet } from "react-native";
-import { View } from "../../components/Themed";
-import { Avatar, Button, List } from "react-native-paper";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Text } from "react-native-paper";
+import React from "react";
+import { View } from "react-native";
+import { Avatar, Button, Divider, List } from "react-native-paper";
+import { Text, useTheme } from "react-native-paper";
 import { FlatList } from "react-native-gesture-handler";
 import { useUserProfile } from "../../contexts/UserContext";
+import LineChart from "../../components/line-chart/LineChart";
+import { Link } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-const threeBestJumps = [
-  {
-    name: "Broad",
-    best: 69,
-    unit: "in",
-  },
-  {
-    name: "Vertical",
-    best: 42,
-    unit: "in",
-  },
-  {
-    name: "High",
-    best: 106,
-    unit: "in",
-  },
-];
-
-export default function Home() {
+function Home() {
   const { userProfile } = useUserProfile();
+  const theme = useTheme();
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={{ ...styles.container, backgroundColor: theme.colors.background }}
+    >
       <View style={styles.avatarContainer}>
-        <Avatar.Icon icon="account" />
+        <Link href="/settings">
+          <Avatar.Icon size={42} icon="account" />
+        </Link>
       </View>
-      <Text variant="headlineLarge" style={styles.title}>
-        Good Morning, {userProfile?.fullName}
+      <Text variant="headlineLarge" style={styles.greeting}>
+        Good Morning, {userProfile?.firstName}
       </Text>
-      <Text variant="bodyLarge">Stay on track and keep progressing</Text>
+      <Text variant="bodyLarge" style={styles.subText}>
+        Stay on track and keep progressing
+      </Text>
       <View style={styles.btnContainer}>
         <Button mode="contained">Continue training</Button>
       </View>
-      <View style={styles.contentContainer}>
-        <Text variant="titleMedium" style={styles.contentTitle}>
+      <View>
+        <Text variant="titleMedium" style={styles.sectionTitle}>
           Top Jumps
         </Text>
-        <View style={styles.content}>
+        <View>
           <FlatList
             data={userProfile?.bestJumps}
             keyExtractor={(item) => item.name}
             renderItem={({ item }) => (
-              <List.Item
-                title={item.name}
-                style={styles.listItem}
-                left={() => <List.Icon icon="shoe-sneaker" />}
-                right={() => (
-                  <Text>
-                    {item.distance} in
-                  </Text>
-                )}
-              />
+              <>
+                <List.Item
+                  title={item.name}
+                  style={{
+                    backgroundColor: theme.colors.onSecondary,
+                    paddingHorizontal: 12,
+                  }}
+                  left={() => <List.Icon icon="shoe-sneaker" />}
+                  right={() => (
+                    <Text variant="labelLarge">{item.distance} in</Text>
+                  )}
+                />
+                <Divider />
+              </>
             )}
           />
         </View>
       </View>
+      <View>
+        <Text variant="titleMedium" style={styles.sectionTitle}>
+          Recent Jumps
+        </Text>
+      </View>
+      <LineChart />
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+export default Home;
+
+const styles = {
   container: {
     flex: 1,
-    padding: 12,
-    backgroundColor: "#F4F6FA",
   },
   avatarContainer: {
-    flexDirection: "row",
-    alignContent: "flex-end",
-    justifyContent: "flex-end",
+    padding: 12,
   },
   btnContainer: {
     paddingVertical: 24,
+    paddingHorizontal: 12,
   },
-  contentContainer: {
-    marginTop: 12,
-    padding: 12,
+  sectionTitle: {
+    paddingLeft: 12,
+    paddingVertical: 12,
   },
-  contentTitle: {
-    fontWeight: "bold",
-    marginBottom: 12,
-  },
-  content: {
-    backgroundColor: "white",
-  },
-  title: {
-    fontWeight: "bold",
+  greeting: {
     paddingBottom: 12,
+    paddingHorizontal: 12,
   },
-  listItem: {
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#EDEDED",
+  subText: {
+    paddingHorizontal: 12,
   },
-});
+};

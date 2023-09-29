@@ -1,9 +1,6 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
-import { Pressable, useColorScheme } from "react-native";
-
-import Colors from "../../constants/Colors";
-import { Text } from "react-native-paper";
+import { useTheme } from "react-native-paper";
 
 /**
  * You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
@@ -16,12 +13,21 @@ function TabBarIcon(props: {
 }
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+  const theme = useTheme();
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+        tabBarActiveTintColor: theme.colors.primary,
+        tabBarInactiveTintColor: theme.colors.onSecondaryContainer,
+        headerTitleStyle: {
+          color: theme.colors.onSecondaryContainer,
+        },
+        headerStyle: {
+          backgroundColor: theme.colors.secondaryContainer,
+        },
+        tabBarStyle: {
+          backgroundColor: theme.colors.secondaryContainer,
+        },
       }}
     >
       <Tabs.Screen
@@ -33,34 +39,31 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="train"
+        name="train/index"
         options={{
           title: "Train",
           headerTitleAlign: "center",
-          headerRight: () => (
-            <Pressable>
-              <Text
-                style={{
-                  marginRight: 12,
-                  color: "#6B4FAA",
-                  fontWeight: "bold",
-                }}
-                variant="bodyLarge"
-              >
-                Finish
-              </Text>
-            </Pressable>
-          ),
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="running" color={color} />
           ),
         }}
       />
       <Tabs.Screen
+        name="train/[jump]/index"
+        options={{
+          href: null,
+          title: "Training Session",
+          headerTitleAlign: "center",
+        }}
+      />
+      <Tabs.Screen
         name="track"
         options={{
           title: "Track",
-          tabBarIcon: ({ color }) => <TabBarIcon name="chart-bar" color={color} />,
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="chart-bar" color={color} />
+          ),
+          headerShown: false,
         }}
       />
     </Tabs>

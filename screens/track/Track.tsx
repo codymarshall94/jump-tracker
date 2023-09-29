@@ -1,20 +1,23 @@
-import { StyleSheet, Dimensions } from "react-native";
-import { View } from "../../components/Themed";
-import { Text } from "react-native-paper";
+import { StyleSheet, Dimensions, View } from "react-native";
+import { Text, useTheme } from "react-native-paper";
 import LineChart from "../../components/line-chart/LineChart";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const screenWidth = Dimensions.get("window").width;
 
 export default function Track() {
+  const theme = useTheme();
   return (
-    <View style={styles.container}>
+    <SafeAreaView
+      style={{ ...styles.container, backgroundColor: theme.colors.background }}
+    >
       <Text variant="headlineMedium" style={styles.title}>
         Broad Jump
       </Text>
       <View style={styles.circleContainer}>
         <View style={styles.circle}>
-          <MaterialCommunityIcons name="shoe-sneaker" size={32} color="black" />
+          <MaterialCommunityIcons name="shoe-sneaker" size={32} color={theme.colors.onBackground} />
 
           <Text variant="labelLarge" style={styles.sessionAmount}>
             105
@@ -25,34 +28,28 @@ export default function Track() {
       <View style={styles.totals}>
         <View style={styles.best}>
           <Text variant="bodyLarge">73</Text>
-          <Text variant="labelLarge">
-            Best Jump
-          </Text>
+          <Text variant="labelLarge">Best Jump</Text>
         </View>
         <View style={styles.verticalDivider} />
         <View style={styles.average}>
           <Text variant="bodyLarge">68</Text>
-          <Text variant="labelLarge" >
-            Average Jump
-          </Text>
+          <Text variant="labelLarge">Average Jump</Text>
         </View>
       </View>
       <Text variant="labelLarge" style={styles.chartHeader}>
         Recent Activity
       </Text>
       <LineChart />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F4F6FA",
   },
   title: {
     textAlign: "center",
-    color: "#6B4FAA",
     fontWeight: "bold",
     paddingVertical: 12,
   },
