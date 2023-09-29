@@ -1,5 +1,6 @@
 export interface Jump {
-  jumpId: number;
+  id: number;
+  jumpId: string;
   jumpType: string;
   distance: number;
   completed: boolean;
@@ -20,7 +21,8 @@ export interface BestJump {
 export interface UserProfile {
   userId: number;
   username: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   email: string;
   bestJumps: BestJump[];
   jumpSessions: JumpSession[];
@@ -29,7 +31,8 @@ export interface UserProfile {
 export const USER_PROFILE: UserProfile = {
   userId: 123,
   username: "john_doe",
-  fullName: "John Doe",
+  firstName: "John",
+  lastName: "Doe",
   email: "john.doe@example.com",
   bestJumps: [
     {
@@ -54,13 +57,15 @@ export const USER_PROFILE: UserProfile = {
       date: "2023-09-28",
       jumps: [
         {
-          jumpId: 1,
+          id: 1,
+          jumpId: "broad_jump",
           jumpType: "Broad Jump",
           distance: 220,
           completed: true,
         },
         {
-          jumpId: 2,
+          id: 2,
+          jumpId: "vertical_jump",
           jumpType: "Vertical Jump",
           distance: 90,
           completed: true,
@@ -72,18 +77,61 @@ export const USER_PROFILE: UserProfile = {
       date: "2023-09-30",
       jumps: [
         {
-          jumpId: 1,
+          id: 1,
+          jumpId: "broad_jump",
           jumpType: "Broad Jump",
           distance: 215,
           completed: true,
         },
         {
-          jumpId: 2,
+          id: 2,
+          jumpId: "vertical_jump",
           jumpType: "Vertical Jump",
           distance: 88,
           completed: true,
         },
       ],
     },
+    {
+      sessionId: 3,
+      date: "2023-10-02",
+      jumps: [
+        {
+          id: 1,
+          jumpId: "broad_jump",
+          jumpType: "Broad Jump",
+          distance: 150,
+          completed: true,
+        },
+        {
+          id: 2,
+          jumpId: "vertical_jump",
+          jumpType: "Vertical Jump",
+          distance: 92,
+          completed: true,
+        },
+      ],
+    },
+    {
+      sessionId: 4,
+      date: "2023-10-05",
+      jumps: [
+        {
+          id: 1,
+          jumpId: "broad_jump",
+          jumpType: "Broad Jump",
+          distance: 208,
+          completed: true,
+        },
+        {
+          id: 2,
+          jumpId: "vertical_jump",
+          jumpType: "Vertical Jump",
+          distance: 87,
+          completed: true,
+        },
+      ],
+    },
+    
   ],
 };
