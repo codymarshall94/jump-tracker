@@ -35,7 +35,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="train"
         options={{
-          title: "Training Session",
+          title: "Train",
           headerTitleAlign: "center",
           headerRight: () => (
             <Pressable>
@@ -54,6 +54,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="running" color={color} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="track"
+        options={{
+          title: "Track",
+          tabBarIcon: ({ color }) => <TabBarIcon name="chart-bar" color={color} />,
         }}
       />
     </Tabs>
