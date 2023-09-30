@@ -5,11 +5,14 @@ import { Text, useTheme } from "react-native-paper";
 import { FlatList } from "react-native-gesture-handler";
 import { useUserProfile } from "../../contexts/UserContext";
 import LineChart from "../../components/line-chart/LineChart";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useSession } from "../../contexts/SessionContext";
 
 function Home() {
   const { userProfile } = useUserProfile();
+  const { session } = useSession();
+  const router = useRouter();
   const theme = useTheme();
 
   return (
@@ -28,7 +31,14 @@ function Home() {
         Stay on track and keep progressing
       </Text>
       <View style={styles.btnContainer}>
-        <Button mode="contained">Continue training</Button>
+        <Button
+          mode="contained"
+          onPress={() =>
+            router.push(session.active ? "/train/broad_jump" : "/train")
+          }
+        >
+          {session.active ? "Continue Session" : "Start A New Session"}
+        </Button>
       </View>
       <View>
         <Text variant="titleMedium" style={styles.sectionTitle}>

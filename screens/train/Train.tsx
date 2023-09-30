@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { Button, useTheme } from "react-native-paper";
 import RepList from "./components/repList/RepList";
+import { useRouter } from "expo-router";
+import { useSession } from "../../contexts/SessionContext";
 
 interface JumpAttempt {
   id: number;
@@ -16,6 +18,8 @@ const initialJumpAttempts = Array.from({ length: 5 }, (_, index) => ({
 }));
 
 export default function Train() {
+  const router = useRouter();
+  const { session, setSession } = useSession();
   const theme = useTheme();
   const maxInputLength = 3;
   const [jumpAttempts, setJumpAttempts] =
@@ -59,7 +63,14 @@ export default function Train() {
   const handleFinishTraining = () => {};
 
   const handleCancelTraining = () => {
-    setJumpAttempts(initialJumpAttempts);
+    if (session.active) {
+      setJumpAttempts(initialJumpAttempts);
+      setSession({
+        active: false,
+        workoutPlan: null,
+      });
+    }
+    router.push("/");
   };
 
   return (
@@ -67,7 +78,7 @@ export default function Train() {
       style={{ ...styles.container, backgroundColor: theme.colors.background }}
     >
       <Text style={{ ...styles.title, color: theme.colors.onBackground }}>
-        Broad Jump
+        {session.workoutPlan?.jumpName}
       </Text>
       <View style={styles.attemptsContainer}>
         <View style={styles.attemptsHeader}>
