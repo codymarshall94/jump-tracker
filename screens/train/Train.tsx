@@ -7,13 +7,15 @@ import { useSession } from "../../contexts/SessionContext";
 
 interface JumpAttempt {
   id: number;
-  attempt: string;
+  feet: string;
+  inches: string;
   completed: boolean;
 }
 
 const initialJumpAttempts = Array.from({ length: 5 }, (_, index) => ({
   id: index,
-  attempt: "",
+  feet: "",
+  inches: "",
   completed: false,
 }));
 
@@ -30,7 +32,8 @@ export default function Train() {
       ...prevAttempts,
       {
         id: jumpAttempts.length,
-        attempt: "",
+        feet: "",
+        inches: "",
         completed: false,
       },
     ]);
@@ -44,20 +47,31 @@ export default function Train() {
     );
   };
 
-  const handleRepInput = (id: number, jumpDistance: string) => {
-    const numericValue = parseFloat(jumpDistance);
+  const handleRepInput = (id: number, feet: string, inches: string) => {
+    const feetValue = parseFloat(feet) || 0;
+    const inchesValue = parseFloat(inches) || 0;
 
-    setJumpAttempts((prevAttempts) =>
-      prevAttempts.map((rep) =>
-        rep.id === id
-          ? {
-              ...rep,
-              attempt: isNaN(numericValue) ? "" : numericValue.toString(),
-              completed: !isNaN(numericValue),
-            }
-          : rep
-      )
-    );
+    if (
+      feetValue >= 0 &&
+      feetValue <= 30 &&
+      inchesValue >= 0 &&
+      inchesValue < 12
+    ) {
+      const totalDistance = feetValue + inchesValue / 12;
+
+      setJumpAttempts((prevAttempts) =>
+        prevAttempts.map((rep) =>
+          rep.id === id
+            ? {
+                ...rep,
+                feet: feet,
+                inches: inches,
+                completed: !isNaN(totalDistance),
+              }
+            : rep
+        )
+      );
+    }
   };
 
   const handleFinishTraining = () => {};
@@ -74,17 +88,13 @@ export default function Train() {
   };
 
   return (
-    <ScrollView
+    <View
       style={{ ...styles.container, backgroundColor: theme.colors.background }}
     >
       <Text style={{ ...styles.title, color: theme.colors.onBackground }}>
         {session.workoutPlan?.jumpName}
       </Text>
       <View style={styles.attemptsContainer}>
-        <View style={styles.attemptsHeader}>
-          <Text style={styles.attemptsHeaderText}>Rep</Text>
-          <Text style={styles.attemptsHeaderText}>Inches</Text>
-        </View>
         <RepList
           jumpAttempts={jumpAttempts}
           maxInputLength={maxInputLength}
@@ -100,7 +110,7 @@ export default function Train() {
           </Button>
         </View>
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -115,15 +125,6 @@ const styles = StyleSheet.create({
   btnContainer: {
     paddingVertical: 24,
     gap: 20,
-  },
-  attemptsHeader: {
-    paddingBottom: 12,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    color: "#CCD8E2",
-  },
-  attemptsHeaderText: {
-    color: "#A3A4A6",
   },
   title: {
     fontSize: 20,

@@ -1,17 +1,19 @@
-import React, { Fragment } from "react";
+import React from "react";
 import RepInput from "./components/repInput/RepInput";
+import { FlatList } from "react-native";
 import { Divider } from "react-native-paper";
 
 interface JumpAttempt {
   id: number;
-  attempt: string;
+  feet: string;
+  inches: string;
   completed: boolean;
 }
 
 interface RepListProps {
   jumpAttempts: JumpAttempt[];
   maxInputLength: number;
-  onRepInput: (id: number, jumpDistance: string) => void;
+  onRepInput: (id: number, feet: string, inches: string) => void;
   onCheckboxChange: (id: number, checked: boolean) => void;
 }
 
@@ -22,19 +24,22 @@ export default function RepList({
   onCheckboxChange,
 }: RepListProps) {
   return (
-    <>
-      {jumpAttempts.map((attempt) => (
-        <Fragment key={attempt.id}>
+    <FlatList
+      data={jumpAttempts}
+      keyExtractor={(item) => item.id.toString()}
+      style={{ height: "70%" }}
+      renderItem={({ item }) => (
+        <>
           <RepInput
-            id={attempt.id}
-            attempt={attempt}
+            id={item.id}
+            attempt={item}
             maxInputLength={maxInputLength}
             onInputChange={onRepInput}
             onCheckboxChange={onCheckboxChange}
           />
           <Divider />
-        </Fragment>
-      ))}
-    </>
+        </>
+      )}
+    />
   );
 }
