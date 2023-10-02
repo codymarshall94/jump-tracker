@@ -1,55 +1,61 @@
-import React, { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { Button, useTheme } from "react-native-paper";
+import React, { useEffect, useRef, useState } from "react";
+import { StyleSheet, View, FlatList } from "react-native";
+import { Button, Text, useTheme } from "react-native-paper";
 import RepList from "./components/repList/RepList";
 import { useRouter } from "expo-router";
 import { useSession } from "../../contexts/SessionContext";
-
-interface JumpAttempt {
-  id: number;
-  feet: string;
-  inches: string;
-  completed: boolean;
-}
+import { useUserProfile } from "../../contexts/UserContext";
+import { UserProfile } from "../../data/Test";
+import { SessionAttempt } from "../../types/session";
 
 const initialJumpAttempts = Array.from({ length: 5 }, (_, index) => ({
-  id: index,
+  attemptId: index,
   feet: "",
   inches: "",
   completed: false,
 }));
 
 export default function Train() {
-  const router = useRouter();
-  const { session, setSession } = useSession();
+  // General
   const theme = useTheme();
-  const maxInputLength = 3;
-  const [jumpAttempts, setJumpAttempts] =
-    useState<JumpAttempt[]>(initialJumpAttempts);
+  const router = useRouter();
+  // Context
+  const { session, setSession, updateSession } = useSession();
+  const { userProfile, setUserProfile } = useUserProfile();
+  // State
+  const [jumpAttempts, setJumpAttempts] = useState<SessionAttempt[]>([]);
+  // Refs
+  const flatListRef = useRef<FlatList<SessionAttempt | null>>(null);
+  // Variables
+  const maxInputLength = 2;
+  const workoutPlan = session.workoutPlan;
+  const jumpId = workoutPlan?.jumpId;
+  const jumpName = workoutPlan?.jumpName;
+
+  useEffect(() => {
+    if (session.workoutPlan?.attempts) {
+      setJumpAttempts(session.workoutPlan?.attempts);
+    }
+  }, [session]);
 
   const handleAddJumpRep = () => {
     setJumpAttempts((prevAttempts) => [
       ...prevAttempts,
       {
-        id: jumpAttempts.length,
+        attemptId: jumpAttempts.length,
         feet: "",
         inches: "",
         completed: false,
       },
     ]);
-  };
-
-  const handleCompleteRep = (id: number, checked: boolean) => {
-    setJumpAttempts((prevAttempts) =>
-      prevAttempts.map((rep) =>
-        rep.id === id ? { ...rep, completed: checked } : rep
-      )
-    );
+    if (flatListRef.current) {
+      flatListRef.current.scrollToEnd();
+    }
   };
 
   const handleRepInput = (id: number, feet: string, inches: string) => {
-    const feetValue = parseFloat(feet) || 0;
-    const inchesValue = parseFloat(inches) || 0;
+    const feetValue = Number(feet) || 0;
+    const inchesValue = Number(inches) || 0;
 
     if (
       feetValue >= 0 &&
@@ -59,31 +65,101 @@ export default function Train() {
     ) {
       const totalDistance = feetValue + inchesValue / 12;
 
-      setJumpAttempts((prevAttempts) =>
-        prevAttempts.map((rep) =>
-          rep.id === id
-            ? {
-                ...rep,
-                feet: feet,
-                inches: inches,
-                completed: !isNaN(totalDistance),
-              }
-            : rep
-        )
+      if (!session.workoutPlan) {
+        return;
+      }
+
+      const updatedJumpAttempts = jumpAttempts.map((rep) =>
+        rep.attemptId === id
+          ? {
+              ...rep,
+              feet: feet,
+              inches: inches,
+              completed: !isNaN(totalDistance),
+            }
+          : rep
       );
+
+      updateSession({
+        ...session,
+        workoutPlan: {
+          ...session.workoutPlan,
+          attempts: updatedJumpAttempts,
+        },
+      });
     }
   };
 
-  const handleFinishTraining = () => {};
+  const handleCompleteRep = (id: number, checked: boolean) => {
+    setJumpAttempts((prevAttempts) =>
+      prevAttempts.map((rep) =>
+        rep.attemptId === id ? { ...rep, completed: checked } : rep
+      )
+    );
+  };
+
+  const calculateHighestJump = (attempts: SessionAttempt[]) => {
+    let sessionHighestJump = 0;
+
+    for (const jump of attempts) {
+      const feetValue = parseFloat(jump.feet) || 0;
+      const inchesValue = parseFloat(jump.inches) || 0;
+      const jumpInInches = feetValue * 12 + inchesValue;
+
+      if (jumpInInches > sessionHighestJump) {
+        sessionHighestJump = jumpInInches;
+      }
+    }
+    return sessionHighestJump;
+  };
+
+  const findOrCreateBestJumpIndex = (
+    userProfile: UserProfile,
+    jumpId: string,
+    jumpName: string
+  ) => {
+    const jumpIndex = userProfile.bestJumps.findIndex(
+      (bestJump) => bestJump.jumpId === jumpId
+    );
+
+    if (jumpIndex === -1) {
+      userProfile.bestJumps.push({
+        jumpId: jumpId,
+        name: jumpName,
+        distance: 0,
+      });
+      return userProfile.bestJumps.length - 1;
+    }
+
+    return jumpIndex;
+  };
+
+  const handleFinishTraining = () => {
+    if (userProfile) {
+      const sessionHighestJump = calculateHighestJump(jumpAttempts);
+
+      if (jumpId && jumpName) {
+        const jumpIndex = findOrCreateBestJumpIndex(
+          userProfile,
+          jumpId,
+          jumpName
+        );
+        const currentBestJump = userProfile.bestJumps[jumpIndex].distance;
+
+        if (sessionHighestJump > currentBestJump) {
+          userProfile.bestJumps[jumpIndex].distance = sessionHighestJump;
+        }
+        setUserProfile(userProfile);
+      }
+    }
+  };
 
   const handleCancelTraining = () => {
-    if (session.active) {
-      setJumpAttempts(initialJumpAttempts);
-      setSession({
-        active: false,
-        workoutPlan: null,
-      });
-    }
+    setJumpAttempts(initialJumpAttempts);
+    setSession({
+      active: false,
+      workoutPlan: null,
+    });
     router.push("/");
   };
 
@@ -92,7 +168,7 @@ export default function Train() {
       style={{ ...styles.container, backgroundColor: theme.colors.background }}
     >
       <Text style={{ ...styles.title, color: theme.colors.onBackground }}>
-        {session.workoutPlan?.jumpName}
+        {jumpName}
       </Text>
       <View style={styles.attemptsContainer}>
         <RepList
@@ -100,6 +176,7 @@ export default function Train() {
           maxInputLength={maxInputLength}
           onRepInput={handleRepInput}
           onCheckboxChange={handleCompleteRep}
+          flatListRef={flatListRef}
         />
         <View style={styles.btnContainer}>
           <Button icon="plus" mode="outlined" onPress={handleAddJumpRep}>

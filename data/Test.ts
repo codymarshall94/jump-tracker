@@ -13,9 +13,9 @@ export interface JumpSession {
 }
 
 export interface BestJump {
-  id: number;
+  jumpId: string;
   name: string;
-  distance: string;
+  distance: number;
 }
 
 export interface UserProfile {
@@ -36,19 +36,19 @@ export const USER_PROFILE: UserProfile = {
   email: "john.doe@example.com",
   bestJumps: [
     {
-      id: 1,
+      jumpId: "broad_jump",
       name: "Broad",
-      distance: "69",
+      distance: 69,
     },
     {
-      id: 2,
+      jumpId: "vertical_jump",
       name: "Vertical",
-      distance: "42",
+      distance: 42,
     },
     {
-      id: 3,
+      jumpId: "high_jump",
       name: "High",
-      distance: "106",
+      distance: 106,
     },
   ],
   jumpSessions: [
@@ -132,6 +132,5 @@ export const USER_PROFILE: UserProfile = {
         },
       ],
     },
-    
   ],
 };

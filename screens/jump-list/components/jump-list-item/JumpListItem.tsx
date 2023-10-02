@@ -1,7 +1,14 @@
 import { useRouter } from "expo-router";
-import { Divider, List, useTheme } from "react-native-paper";
+import { Button, Divider, List, useTheme } from "react-native-paper";
 import { useSession } from "../../../../contexts/SessionContext";
 import { AntDesign } from "@expo/vector-icons";
+
+const initialJumpAttempts = Array.from({ length: 5 }, (_, index) => ({
+  attemptId: index,
+  feet: "",
+  inches: "",
+  completed: false,
+}));
 
 export default function JumpListItem({
   jumpId,
@@ -28,6 +35,7 @@ export default function JumpListItem({
         workoutPlan: {
           jumpId,
           jumpName,
+          attempts: initialJumpAttempts,
         },
       });
       router.push(`/train/${jumpId}`);
@@ -39,13 +47,17 @@ export default function JumpListItem({
       <List.Item
         onPress={() => handleStartSession(jumpId)}
         title={jumpName}
-        right={() => (
-          <AntDesign
-            name="rightcircleo"
-            size={24}
-            color={theme.colors.onPrimaryContainer}
-          />
-        )}
+        right={() =>
+          session.active && session.workoutPlan?.jumpId === jumpId ? (
+            <Button mode="outlined">Continue</Button>
+          ) : (
+            <AntDesign
+              name="rightcircleo"
+              size={24}
+              color={theme.colors.onPrimaryContainer}
+            />
+          )
+        }
       />
       <Divider />
     </>

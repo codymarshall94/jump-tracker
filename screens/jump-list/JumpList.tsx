@@ -31,6 +31,7 @@ export default function JumpList() {
     const selectedJumpData = {
       jumpId: selectedJump,
       jumpName: JumpTypes[selectedJump as keyof typeof JumpTypes],
+      attempts: [],
     };
 
     setSession({

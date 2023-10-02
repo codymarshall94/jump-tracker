@@ -7,9 +7,7 @@ interface UserProfileContextType {
   setUserProfile: React.Dispatch<React.SetStateAction<UserProfile | null>>;
 }
 
-const UserProfileContext = createContext<UserProfileContextType | undefined>(
-  undefined
-);
+const UserProfileContext = createContext<UserProfileContextType | null>(null);
 
 export const UserProfileProvider: React.FC<{ children: ReactNode }> = ({
   children,
