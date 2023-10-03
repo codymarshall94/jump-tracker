@@ -5,6 +5,9 @@ import { useEffect } from "react";
 import { PaperProvider } from "react-native-paper";
 import { UserProfileProvider } from "../contexts/UserContext";
 import { SessionProvider } from "../contexts/SessionContext";
+import {
+  AuthenticatedUserProvider,
+} from "../contexts/AuthContext";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -21,7 +24,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
-    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+    "Inter-Black": require("../assets/fonts/Inter-Black.otf"),
     ...FontAwesome.font,
   });
 
@@ -46,18 +49,21 @@ export default function RootLayout() {
 function RootLayoutNav() {
   return (
     <UserProfileProvider>
-      <SessionProvider>
-        <PaperProvider>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="settings/index"
-              options={{ headerShown: false, presentation: "modal" }}
-            />
-            <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-          </Stack>
-        </PaperProvider>
-      </SessionProvider>
+      <AuthenticatedUserProvider>
+        <SessionProvider>
+          <PaperProvider>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="settings/index"
+                options={{ headerShown: false, presentation: "modal" }}
+              />
+              <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            </Stack>
+          </PaperProvider>
+        </SessionProvider>
+      </AuthenticatedUserProvider>
     </UserProfileProvider>
   );
 }
