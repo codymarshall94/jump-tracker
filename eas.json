@@ -5,10 +5,28 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyAy_GFiaXVFXgAklXH10qAOa60ZboT0uTM",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "jumper-c368f.firebaseapp.com",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "jumper-c368f",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "jumper-c368f.appspot.com",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "320548684429",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:320548684429:web:a4d76ae340981e2c5dd8c4",
+        "EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID": "G-9KK574572H"
+      }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyAy_GFiaXVFXgAklXH10qAOa60ZboT0uTM",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "jumper-c368f.firebaseapp.com",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "jumper-c368f",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "jumper-c368f.appspot.com",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "320548684429",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:320548684429:web:a4d76ae340981e2c5dd8c4",
+        "EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID": "G-9KK574572H"
+      }
     },
     "production": {
       "env": {
