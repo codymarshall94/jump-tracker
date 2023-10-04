@@ -28,6 +28,7 @@ export default function GetStarted() {
       </View>
       <Button
         style={styles.button}
+        labelStyle={styles.buttonLabel}
         mode="contained"
         onPress={() => router.push("/(auth)/sign-up")}
       >
@@ -66,8 +67,13 @@ const styles = StyleSheet.create({
     height: 200,
   },
   button: {
-    width: "100%",
+    paddingVertical: 10,
     marginVertical: 24,
+    marginHorizontal: 12,
+  },
+  buttonLabel: {
+    fontSize: 16,
+    fontWeight: "bold",
   },
   bottomText: {
     flexDirection: "row",

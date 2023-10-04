@@ -4,9 +4,16 @@ import { Button, Text, useTheme } from "react-native-paper";
 import RepList from "./components/repList/RepList";
 import { useRouter } from "expo-router";
 import { useSession } from "../../contexts/SessionContext";
-import { useUserProfile } from "../../contexts/UserContext";
-import { UserProfile } from "../../data/Test";
 import { SessionAttempt } from "../../types/session";
+import { useAuthenticatedUser } from "../../contexts/AuthContext";
+import { db } from "../../config/firebase";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  runTransaction,
+} from "firebase/firestore";
 
 const initialJumpAttempts = Array.from({ length: 5 }, (_, index) => ({
   attemptId: index,
@@ -21,16 +28,15 @@ export default function Train() {
   const router = useRouter();
   // Context
   const { session, setSession, updateSession } = useSession();
-  const { userProfile, setUserProfile } = useUserProfile();
+  const { user } = useAuthenticatedUser();
   // State
   const [jumpAttempts, setJumpAttempts] = useState<SessionAttempt[]>([]);
   // Refs
   const flatListRef = useRef<FlatList<SessionAttempt | null>>(null);
   // Variables
   const maxInputLength = 2;
-  const workoutPlan = session.workoutPlan;
-  const jumpId = workoutPlan?.jumpId;
-  const jumpName = workoutPlan?.jumpName;
+  const { workoutPlan } = session;
+  const { jumpId, jumpName } = workoutPlan || {};
 
   useEffect(() => {
     if (session.workoutPlan?.attempts) {
@@ -113,43 +119,69 @@ export default function Train() {
     return sessionHighestJump;
   };
 
-  const findOrCreateBestJumpIndex = (
-    userProfile: UserProfile,
-    jumpId: string,
-    jumpName: string
-  ) => {
-    const jumpIndex = userProfile.bestJumps.findIndex(
-      (bestJump) => bestJump.jumpId === jumpId
-    );
-
-    if (jumpIndex === -1) {
-      userProfile.bestJumps.push({
-        jumpId: jumpId,
-        name: jumpName,
-        distance: 0,
-      });
-      return userProfile.bestJumps.length - 1;
+  const findBestJump = (userProfile: any, jumpId: string) => {
+    if (!userProfile.bestJumps) {
+      userProfile.bestJumps = [];
     }
 
-    return jumpIndex;
+    return userProfile.bestJumps.find(
+      (bestJump: any) => bestJump.jumpId === jumpId
+    );
   };
 
-  const handleFinishTraining = () => {
-    if (userProfile) {
+  // For Cody's reference. https://firebase.google.com/docs/firestore/manage-data/transactions
+  // Transactions : either all of the operations succeed or none of them are applied.
+  const handleFinishTraining = async () => {
+    if (user && jumpId && jumpName) {
       const sessionHighestJump = calculateHighestJump(jumpAttempts);
+      const userRef = doc(db, "users", user.uid);
 
-      if (jumpId && jumpName) {
-        const jumpIndex = findOrCreateBestJumpIndex(
-          userProfile,
-          jumpId,
-          jumpName
-        );
-        const currentBestJump = userProfile.bestJumps[jumpIndex].distance;
+      try {
+        await runTransaction(db, async (transaction) => {
+          const userProfileDoc = await getDoc(userRef);
+          if (!userProfileDoc.exists()) {
+            throw new Error("User profile does not exist");
+          }
 
-        if (sessionHighestJump > currentBestJump) {
-          userProfile.bestJumps[jumpIndex].distance = sessionHighestJump;
-        }
-        setUserProfile(userProfile);
+          const userProfile = userProfileDoc.data();
+          const userBestJump = findBestJump(userProfile, jumpId);
+
+          if (
+            userBestJump === undefined ||
+            sessionHighestJump > userBestJump.distance
+          ) {
+            const newBestJump = {
+              jumpId,
+              jumpName,
+              distance: sessionHighestJump,
+              unit: "in",
+            };
+
+            const existingBestJumpIndex = userProfile.bestJumps.findIndex(
+              (bestJump: any) => bestJump.jumpId === jumpId
+            );
+
+            if (existingBestJumpIndex !== -1) {
+              userProfile.bestJumps[existingBestJumpIndex] = newBestJump;
+            } else {
+              userProfile.bestJumps.push(newBestJump);
+            }
+
+            transaction.update(userRef, { bestJumps: userProfile.bestJumps });
+          }
+
+          const jumpSessionsRef = collection(userRef, "jumpSessions");
+          const jumpSessionData = {
+            jumpId,
+            jumpName,
+            sessionHighestJump,
+            unit: "in",
+            date: new Date(),
+          };
+          await addDoc(jumpSessionsRef, jumpSessionData);
+        });
+      } catch (error) {
+        console.error("Error updating user data:", error);
       }
     }
   };
@@ -170,6 +202,7 @@ export default function Train() {
       <Text style={{ ...styles.title, color: theme.colors.onBackground }}>
         {jumpName}
       </Text>
+      <Button onPress={handleFinishTraining}>Finish</Button>
       <View style={styles.attemptsContainer}>
         <RepList
           jumpAttempts={jumpAttempts}

@@ -4,14 +4,30 @@ import { useTheme } from "react-native-paper";
 import { FlatList } from "react-native-gesture-handler";
 import { Divider, List, Switch, Text } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Pressable } from "react-native";
 import { useState } from "react";
+import { signOut } from "firebase/auth";
+import { auth } from "../../config/firebase";
+import { useRouter } from "expo-router";
 
 export default function Settings() {
   const theme = useTheme();
+  const router = useRouter();
   const [isSwitchOn, setIsSwitchOn] = useState(false);
 
   const onToggleSwitch = () => setIsSwitchOn(!isSwitchOn);
+
+  const handleSignOut = () => {
+    signOut(auth)
+      .then(() => {
+        router.replace("/(auth)");
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.error("Error while signing out:", errorCode, errorMessage);
+      });
+  };
 
   const settings = [
     "Edit Profile",
@@ -36,7 +52,10 @@ export default function Settings() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <Text style={{ color: theme.colors.onBackground, padding: 12 }} variant="headlineLarge">
+      <Text
+        style={{ color: theme.colors.onBackground, padding: 12 }}
+        variant="headlineLarge"
+      >
         Settings
       </Text>
       <FlatList
@@ -44,7 +63,10 @@ export default function Settings() {
         keyExtractor={(item) => item}
         renderItem={({ item }) => (
           <>
-            <View style={styles.listItem}>
+            <Pressable
+              style={styles.listItem}
+              onPress={item === "Log Out" ? handleSignOut : null}
+            >
               <List.Item
                 title={item}
                 style={{ backgroundColor: theme.colors.surface }}
@@ -56,7 +78,7 @@ export default function Settings() {
                   color={theme.colors.primary}
                 />
               ) : null}
-            </View>
+            </Pressable>
             <Divider />
           </>
         )}

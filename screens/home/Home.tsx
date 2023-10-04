@@ -8,9 +8,11 @@ import LineChart from "../../components/line-chart/LineChart";
 import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSession } from "../../contexts/SessionContext";
+import { useAuthenticatedUser } from "../../contexts/AuthContext";
 
 function Home() {
   const { userProfile } = useUserProfile();
+  const { user } = useAuthenticatedUser();
   const { session } = useSession();
   const router = useRouter();
   const theme = useTheme();
@@ -25,7 +27,7 @@ function Home() {
         </Link>
       </View>
       <Text variant="headlineLarge" style={styles.greeting}>
-        Good Morning, {userProfile?.firstName}
+        Good Morning, {user?.displayName}
       </Text>
       <Text variant="bodyLarge" style={styles.subText}>
         Stay on track and keep progressing
@@ -33,6 +35,8 @@ function Home() {
       <View style={styles.btnContainer}>
         <Button
           mode="contained"
+          style={styles.button}
+          labelStyle={styles.buttonLabel}
           onPress={() =>
             router.push(session.active ? "/train/broad_jump" : "/train")
           }
@@ -89,6 +93,13 @@ const styles = {
   btnContainer: {
     paddingVertical: 24,
     paddingHorizontal: 12,
+  },
+  button: {
+    paddingVertical: 10,
+    marginHorizontal: 12,
+  },
+  buttonLabel: {
+
   },
   sectionTitle: {
     paddingLeft: 12,
