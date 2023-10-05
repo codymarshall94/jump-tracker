@@ -4,7 +4,7 @@ import { useTheme } from "react-native-paper";
 import { FlatList } from "react-native-gesture-handler";
 import { Divider, List, Switch, Text } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, StyleSheet, Pressable } from "react-native";
+import { StyleSheet, Pressable } from "react-native";
 import { useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "../../config/firebase";
@@ -20,7 +20,7 @@ export default function Settings() {
   const handleSignOut = () => {
     signOut(auth)
       .then(() => {
-        router.replace("/(auth)");
+        router.push("/(auth)/get-started");
       })
       .catch((error) => {
         const errorCode = error.code;
