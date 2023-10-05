@@ -1,7 +1,8 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import { Redirect, Tabs } from "expo-router";
+import { Redirect, Tabs, useRouter } from "expo-router";
 import { useTheme } from "react-native-paper";
 import { useAuthenticatedUser } from "../../contexts/AuthContext";
+import { View, Text } from "react-native";
 
 /**
  * You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
@@ -14,13 +15,19 @@ function TabBarIcon(props: {
 }
 
 export default function TabLayout() {
+  const router = useRouter();
+  const { user, loading } = useAuthenticatedUser();
+
   const theme = useTheme();
 
-  const { user } = useAuthenticatedUser();
+  if (loading) {
+    return <Text>Loading</Text>;
+  }
 
   if (!user) {
-    return <Redirect href="/(auth)" />;
+    return router.replace("/(auth)/get-started");
   }
+
   return (
     <Tabs
       screenOptions={{
