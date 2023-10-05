@@ -1,9 +1,7 @@
-import React from "react";
 import { View } from "react-native";
 import { Avatar, Button, Divider, List } from "react-native-paper";
 import { Text, useTheme } from "react-native-paper";
 import { FlatList } from "react-native-gesture-handler";
-import { useUserProfile } from "../../contexts/UserContext";
 import LineChart from "../../components/line-chart/LineChart";
 import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -11,18 +9,25 @@ import { useSession } from "../../contexts/SessionContext";
 import { useAuthenticatedUser } from "../../contexts/AuthContext";
 
 function Home() {
-  const { userProfile } = useUserProfile();
-  const { user } = useAuthenticatedUser();
+  const { user, userProfile, loading } = useAuthenticatedUser();
   const { session } = useSession();
   const router = useRouter();
   const theme = useTheme();
+
+  if (!userProfile && loading) {
+    return (
+      <View style={styles.container}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView
       style={{ ...styles.container, backgroundColor: theme.colors.background }}
     >
       <View style={styles.avatarContainer}>
-        <Link href="/settings">
+        <Link href="/settings/settings">
           <Avatar.Icon size={42} icon="account" />
         </Link>
       </View>
@@ -38,7 +43,11 @@ function Home() {
           style={styles.button}
           labelStyle={styles.buttonLabel}
           onPress={() =>
-            router.push(session.active ? "/train/broad_jump" : "/train")
+            router.push(
+              session.active
+                ? `/train/${session.workoutPlan?.jumpId}`
+                : "/train"
+            )
           }
         >
           {session.active ? "Continue Session" : "Start A New Session"}
@@ -51,11 +60,11 @@ function Home() {
         <View>
           <FlatList
             data={userProfile?.bestJumps}
-            keyExtractor={(item) => item.name}
+            keyExtractor={(item) => item.jumpName}
             renderItem={({ item }) => (
               <>
                 <List.Item
-                  title={item.name}
+                  title={item.jumpName}
                   style={{
                     backgroundColor: theme.colors.onSecondary,
                     paddingHorizontal: 12,
@@ -98,9 +107,7 @@ const styles = {
     paddingVertical: 10,
     marginHorizontal: 12,
   },
-  buttonLabel: {
-
-  },
+  buttonLabel: {},
   sectionTitle: {
     paddingLeft: 12,
     paddingVertical: 12,
