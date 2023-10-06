@@ -1,6 +1,6 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import { Redirect, Tabs, useRouter } from "expo-router";
-import { useTheme } from "react-native-paper";
+import { ActivityIndicator, useTheme } from "react-native-paper";
 import { useAuthenticatedUser } from "../../contexts/AuthContext";
 import { View, Text } from "react-native";
 
@@ -21,7 +21,11 @@ export default function TabLayout() {
   const theme = useTheme();
 
   if (loading) {
-    return <Text>Loading</Text>;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator animating />
+      </View>
+    );
   }
 
   if (!user) {
@@ -83,3 +87,9 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+const styles = {
+  loadingContainer: {
+    flex: 1,
+  },
+};
