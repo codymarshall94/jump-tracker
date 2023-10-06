@@ -1,8 +1,11 @@
-import { Dimensions, View, Text } from "react-native";
+import { Dimensions, Text } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 import { useState, useEffect } from "react";
 import { useTheme } from "react-native-paper";
 import { useAuthenticatedUser } from "../../contexts/AuthContext";
+import EmptyState from "../empty-state/EmptyState";
+
+// This LineChart will break the application if it has more than 10 points on the chart
 
 export default function LineChartData() {
   const theme = useTheme();
@@ -12,26 +15,26 @@ export default function LineChartData() {
 
   const screenWidth = Dimensions.get("window").width;
 
-  console.log(userProfile);
-
   useEffect(() => {
     if (userProfile?.jumpSessions && selectedData) {
-      const filteredJumpSessions = userProfile.jumpSessions.filter(
-        (session) => session.jumpId === selectedData
-      );
+      const filteredJumpSessions = userProfile.jumpSessions
+        .filter((session) => session.jumpId === selectedData)
+        .slice(0, 7);
 
-      const data = {
-        labels: [],
-        datasets: [
-          {
-            data: filteredJumpSessions.map(
-              (session) => session.sessionHighestJump
-            ),
-          },
-        ],
-      };
+      if (filteredJumpSessions.length > 0) {
+        const data = {
+          labels: [],
+          datasets: [
+            {
+              data: filteredJumpSessions.map(
+                (session) => session.sessionHighestJump
+              ),
+            },
+          ],
+        };
 
-      setChartData(data);
+        setChartData(data);
+      }
     }
   }, [userProfile, selectedData]);
 
@@ -40,7 +43,7 @@ export default function LineChartData() {
   }
 
   if (!chartData) {
-    return <Text>No data available for the selected jump.</Text>;
+    return <EmptyState message="No Sessions Tracked" />;
   }
 
   const chartConfig = {
