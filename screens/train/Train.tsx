@@ -14,6 +14,21 @@ import {
   getDoc,
   runTransaction,
 } from "firebase/firestore";
+import CustomModal from "../../components/modal/Modal";
+import {
+  calculateBestJump,
+  calculateAverageJump,
+  findBestJump,
+} from "../../utils/CalculateJump";
+
+const modalState = {
+  finished: {
+    title: "Great Session!",
+  },
+  finishedBest: {
+    title: "New Personal Best!",
+  },
+};
 
 const initialJumpAttempts = Array.from({ length: 5 }, (_, index) => ({
   attemptId: index,
@@ -31,6 +46,11 @@ export default function Train() {
   const { user } = useAuthenticatedUser();
   // State
   const [jumpAttempts, setJumpAttempts] = useState<SessionAttempt[]>([]);
+  const [bestJump, setBestJump] = useState<number>(0);
+  const [averageJump, setAverageJump] = useState<number>(0);
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  const [newPersonalBest, setNewPersonalBest] = useState<boolean>(false);
+
   // Refs
   const flatListRef = useRef<FlatList<SessionAttempt | null>>(null);
   // Variables
@@ -104,85 +124,74 @@ export default function Train() {
     );
   };
 
-  const calculateHighestJump = (attempts: SessionAttempt[]) => {
-    let sessionHighestJump = 0;
-
-    for (const jump of attempts) {
-      const feetValue = parseFloat(jump.feet) || 0;
-      const inchesValue = parseFloat(jump.inches) || 0;
-      const jumpInInches = feetValue * 12 + inchesValue;
-
-      if (jumpInInches > sessionHighestJump) {
-        sessionHighestJump = jumpInInches;
-      }
-    }
-    return sessionHighestJump;
-  };
-
-  const findBestJump = (userProfile: any, jumpId: string) => {
-    if (!userProfile.bestJumps) {
-      userProfile.bestJumps = [];
-    }
-
-    return userProfile.bestJumps.find(
-      (bestJump: any) => bestJump.jumpId === jumpId
-    );
-  };
-
   // For Cody's reference. https://firebase.google.com/docs/firestore/manage-data/transactions
   // Transactions : either all of the operations succeed or none of them are applied.
   const handleFinishTraining = async () => {
-    if (user && jumpId && jumpName) {
-      const sessionHighestJump = calculateHighestJump(jumpAttempts);
+    if (!user || !jumpId || !jumpName) {
+      // Handle missing user or jump data
+      console.error("User, jumpId, or jumpName is missing.");
+      return;
+    }
+
+    try {
+      const sessionBestJump = calculateBestJump(jumpAttempts);
+      const newAverageJump = calculateAverageJump(jumpAttempts);
+
       const userRef = doc(db, "users", user.uid);
+      const userProfileDoc = await getDoc(userRef);
 
-      try {
+      if (!userProfileDoc.exists()) {
+        console.error("User profile does not exist.");
+        return;
+      }
+
+      const userProfile = userProfileDoc.data();
+      const userBestJump = findBestJump(userProfile, jumpId);
+
+      setBestJump(sessionBestJump);
+      setAverageJump(newAverageJump);
+
+      if (
+        userBestJump === undefined ||
+        sessionBestJump > userBestJump.distance
+      ) {
+        setNewPersonalBest(true);
+
+        const newBestJump = {
+          jumpId,
+          jumpName,
+          distance: sessionBestJump,
+          unit: "in",
+        };
+
+        const existingBestJumpIndex = userProfile.bestJumps.findIndex(
+          (bestJump: any) => bestJump.jumpId === jumpId
+        );
+
+        if (existingBestJumpIndex !== -1) {
+          userProfile.bestJumps[existingBestJumpIndex] = newBestJump;
+        } else {
+          userProfile.bestJumps.push(newBestJump);
+        }
+
         await runTransaction(db, async (transaction) => {
-          const userProfileDoc = await getDoc(userRef);
-          if (!userProfileDoc.exists()) {
-            throw new Error("User profile does not exist");
-          }
-
-          const userProfile = userProfileDoc.data();
-          const userBestJump = findBestJump(userProfile, jumpId);
-
-          if (
-            userBestJump === undefined ||
-            sessionHighestJump > userBestJump.distance
-          ) {
-            const newBestJump = {
-              jumpId,
-              jumpName,
-              distance: sessionHighestJump,
-              unit: "in",
-            };
-
-            const existingBestJumpIndex = userProfile.bestJumps.findIndex(
-              (bestJump: any) => bestJump.jumpId === jumpId
-            );
-
-            if (existingBestJumpIndex !== -1) {
-              userProfile.bestJumps[existingBestJumpIndex] = newBestJump;
-            } else {
-              userProfile.bestJumps.push(newBestJump);
-            }
-
-            transaction.update(userRef, { bestJumps: userProfile.bestJumps });
-          }
+          transaction.update(userRef, { bestJumps: userProfile.bestJumps });
 
           const jumpSessionsRef = collection(userRef, "jumpSessions");
           const jumpSessionData = {
             jumpId,
             jumpName,
-            sessionHighestJump,
+            sessionBestJump,
             unit: "in",
             date: new Date(),
           };
           await addDoc(jumpSessionsRef, jumpSessionData);
         });
-      } catch (error) {
-        console.error("Error updating user data:", error);
+
+        setIsModalVisible(true);
       }
+    } catch (error) {
+      console.error("Error updating user data:", error);
     }
   };
 
@@ -196,31 +205,65 @@ export default function Train() {
   };
 
   return (
-    <View
-      style={{ ...styles.container, backgroundColor: theme.colors.background }}
-    >
-      <Text style={{ ...styles.title, color: theme.colors.onBackground }}>
-        {jumpName}
-      </Text>
-      <Button onPress={handleFinishTraining}>Finish</Button>
-      <View style={styles.attemptsContainer}>
-        <RepList
-          jumpAttempts={jumpAttempts}
-          maxInputLength={maxInputLength}
-          onRepInput={handleRepInput}
-          onCheckboxChange={handleCompleteRep}
-          flatListRef={flatListRef}
-        />
-        <View style={styles.btnContainer}>
-          <Button icon="plus" mode="outlined" onPress={handleAddJumpRep}>
-            Add Rep
-          </Button>
-          <Button mode="text" onPress={handleCancelTraining}>
-            Cancel Training
-          </Button>
+    <>
+      <View
+        style={{
+          ...styles.container,
+          backgroundColor: theme.colors.background,
+        }}
+      >
+        <Text style={{ ...styles.title, color: theme.colors.onBackground }}>
+          {jumpName}
+        </Text>
+        <Button onPress={handleFinishTraining}>Finish</Button>
+        <View style={styles.attemptsContainer}>
+          <RepList
+            jumpAttempts={jumpAttempts}
+            maxInputLength={maxInputLength}
+            onRepInput={handleRepInput}
+            onCheckboxChange={handleCompleteRep}
+            flatListRef={flatListRef}
+          />
+          <View style={styles.btnContainer}>
+            <Button icon="plus" mode="outlined" onPress={handleAddJumpRep}>
+              Add Rep
+            </Button>
+            <Button mode="text" onPress={handleCancelTraining}>
+              Cancel Training
+            </Button>
+          </View>
         </View>
       </View>
-    </View>
+      <CustomModal
+        visible={isModalVisible}
+        hideModal={() => setIsModalVisible(false)}
+        title={
+          newPersonalBest
+            ? modalState.finishedBest.title
+            : modalState.finished.title
+        }
+        content={
+          <View style={styles.modalContent}>
+            <Text variant="bodyLarge">
+              {newPersonalBest ? "New Best!" : "Best Jump"}
+            </Text>
+            <Text
+              variant="headlineLarge"
+              style={{
+                color: newPersonalBest
+                  ? theme.colors.primary
+                  : theme.colors.onBackground,
+              }}
+            >
+              {bestJump.toFixed(0)} in
+            </Text>
+
+            <Text variant="bodyLarge">Average Jump:</Text>
+            <Text variant="headlineLarge">{averageJump.toFixed(0)} in</Text>
+          </View>
+        }
+      />
+    </>
   );
 }
 
@@ -242,5 +285,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingVertical: 12,
     marginVertical: 8,
+  },
+  modalContent: {
+    alignItems: "center",
+    flexDirection: "column",
+    gap: 12,
   },
 });
