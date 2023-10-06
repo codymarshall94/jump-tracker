@@ -1,5 +1,4 @@
 import { Link, useRouter } from "expo-router";
-import React from "react";
 import { View, StyleSheet, Image } from "react-native";
 import { Button, Text, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,7 +18,7 @@ export default function GetStarted() {
       <Text variant="headlineLarge" style={{ color: theme.colors.primary }}>
         Welcome to Jumper
       </Text>
-      <Text variant="bodyLarge">The best Jump Testing application</Text>
+      <Text variant="bodyLarge">Jump Testing Made Simple</Text>
       <View style={styles.imageContainer}>
         <Image
           style={styles.image}
@@ -35,7 +34,7 @@ export default function GetStarted() {
         Get Started
       </Button>
       <View style={styles.bottomText}>
-        <Text variant="bodySmall">Already have an account?</Text>
+        <Text variant="bodyLarge">Already have an account?</Text>
         <Link
           style={{ ...styles.link, color: theme.colors.primary }}
           href="/(auth)/sign-in"
