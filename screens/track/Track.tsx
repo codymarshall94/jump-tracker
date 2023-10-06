@@ -3,13 +3,13 @@ import { Text, useTheme } from "react-native-paper";
 import LineChart from "../../components/line-chart/LineChart";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useUserProfile } from "../../contexts/UserContext";
+import { useAuthenticatedUser } from "../../contexts/AuthContext";
 
 const screenWidth = Dimensions.get("window").width;
 
 export default function Track() {
   const theme = useTheme();
-  const { userProfile } = useUserProfile();
+  const { userProfile } = useAuthenticatedUser();
   return (
     <SafeAreaView
       style={{ ...styles.container, backgroundColor: theme.colors.background }}
@@ -33,7 +33,9 @@ export default function Track() {
       </View>
       <View style={styles.totals}>
         <View style={styles.best}>
-          <Text variant="bodyLarge">{userProfile?.bestJumps[0].distance}</Text>
+          <Text variant="bodyLarge">
+            {userProfile?.bestJumps?.[0]?.distance || "N/A"}
+          </Text>
           <Text variant="labelLarge">Best Jump</Text>
         </View>
         <View style={styles.verticalDivider} />
