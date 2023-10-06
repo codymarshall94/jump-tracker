@@ -67,7 +67,6 @@ export const AuthenticatedUserProvider: React.FC<
           userData.jumpSessions = jumpSessionsData;
 
           setUserProfile(userData);
-          console.log(userData);
           setLoading(false);
         } else {
           console.log("User does not exist");
