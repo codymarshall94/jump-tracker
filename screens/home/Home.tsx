@@ -1,5 +1,11 @@
 import { View } from "react-native";
-import { Avatar, Button, Divider, List } from "react-native-paper";
+import {
+  ActivityIndicator,
+  Avatar,
+  Button,
+  Divider,
+  List,
+} from "react-native-paper";
 import { Text, useTheme } from "react-native-paper";
 import { FlatList } from "react-native-gesture-handler";
 import LineChart from "../../components/line-chart/LineChart";
@@ -7,6 +13,7 @@ import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSession } from "../../contexts/SessionContext";
 import { useAuthenticatedUser } from "../../contexts/AuthContext";
+import BestJumps from "./components/best-jumps/BestJumps";
 
 function Home() {
   const { user, userProfile, loading } = useAuthenticatedUser();
@@ -16,8 +23,8 @@ function Home() {
 
   if (!userProfile && loading) {
     return (
-      <View style={styles.container}>
-        <Text>Loading...</Text>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator animating />
       </View>
     );
   }
@@ -53,38 +60,16 @@ function Home() {
           {session.active ? "Continue Session" : "Start A New Session"}
         </Button>
       </View>
-      <View>
-        <Text variant="titleMedium" style={styles.sectionTitle}>
-          Top Jumps
-        </Text>
-        <View>
-          <FlatList
-            data={userProfile?.bestJumps}
-            keyExtractor={(item) => item.jumpName}
-            renderItem={({ item }) => (
-              <>
-                <List.Item
-                  title={item.jumpName}
-                  style={{
-                    backgroundColor: theme.colors.onSecondary,
-                    paddingHorizontal: 12,
-                  }}
-                  left={() => <List.Icon icon="shoe-sneaker" />}
-                  right={() => (
-                    <Text variant="labelLarge">{item.distance} in</Text>
-                  )}
-                />
-                <Divider />
-              </>
-            )}
-          />
-        </View>
-      </View>
-      <View>
-        <Text variant="titleMedium" style={styles.sectionTitle}>
-          Recent Jumps
-        </Text>
-      </View>
+
+      <Text variant="titleMedium" style={styles.sectionTitle}>
+        Top Jumps
+      </Text>
+      <BestJumps data={userProfile?.bestJumps} />
+
+      <Text variant="titleMedium" style={styles.sectionTitle}>
+        Recent Jumps
+      </Text>
+
       <LineChart />
     </SafeAreaView>
   );
@@ -94,6 +79,9 @@ export default Home;
 
 const styles = {
   container: {
+    flex: 1,
+  },
+  loadingContainer: {
     flex: 1,
   },
   avatarContainer: {
