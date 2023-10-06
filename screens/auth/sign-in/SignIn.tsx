@@ -1,10 +1,10 @@
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { Button, Text, TextInput, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LogoIcon from "../../../components/logo-icon/LogoIcon";
-import { useRouter } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { auth } from "../../../config/firebase";
 
 export default function SignIn() {
@@ -12,8 +12,10 @@ export default function SignIn() {
   const router = useRouter();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [error, setError] = useState<string>("");
 
   const handleSignIn = () => {
+    setError("");
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         const user = userCredential.user;
@@ -21,9 +23,7 @@ export default function SignIn() {
         router.replace("/(tabs)");
       })
       .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.error("Error while signing in:", errorCode, errorMessage);
+        setError(error.message);
       });
   };
 
@@ -37,7 +37,13 @@ export default function SignIn() {
       <Text variant="headlineLarge" style={styles.greeting}>
         Welcome Back
       </Text>
+
       <View style={styles.inputContainer}>
+        {error && (
+          <Text variant="bodyMedium" style={styles.error}>
+            {error}
+          </Text>
+        )}
         <TextInput
           placeholder="Enter email"
           autoCapitalize="none"
@@ -56,6 +62,7 @@ export default function SignIn() {
           value={password}
           onChangeText={(text) => setPassword(text)}
         />
+        <Link href="/(auth)/forgot-password">Forgot password?</Link>
       </View>
       <View style={styles.providers}>
         <Text variant="bodyMedium">Sign in with</Text>
@@ -118,5 +125,10 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     paddingVertical: 24,
+  },
+  error: {
+    marginTop: 10,
+    color: "red",
+    textAlign: "center",
   },
 });
