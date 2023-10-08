@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, View, FlatList } from "react-native";
 import { Appbar, Button, Text, useTheme } from "react-native-paper";
 import RepList from "./components/repList/RepList";
@@ -130,6 +130,7 @@ export default function Train() {
   // Transactions : either all of the operations succeed or none of them are applied.
   const handleFinishTraining = async () => {
     setIsDialogVisible(false);
+
     if (!user || !jumpId || !jumpName) {
       console.error("User, jumpId, or jumpName is missing.");
       return;
@@ -152,49 +153,79 @@ export default function Train() {
       setBestJump(bestJump);
       setAverageJump(averageJump);
 
+      // Update totalSessions and totalJumps for the relevant UserJump
+      const existingBestJumpIndex = userProfile.jumps.findIndex(
+        (bestJump: any) => bestJump.jumpId === jumpId
+      );
+
+      if (existingBestJumpIndex !== -1) {
+        userProfile.jumps[existingBestJumpIndex].totalSessions =
+          (userProfile.jumps[existingBestJumpIndex].totalSessions || 0) + 1;
+
+        // Increment totalJumps by the number of jumps marked completed in the session
+        userProfile.jumps[existingBestJumpIndex].totalJumps =
+          (userProfile.jumps[existingBestJumpIndex].totalJumps || 0) +
+          jumpAttempts.filter((jump) => jump.completed).length;
+      }
+
+      // Apply totalSessions and totalJumps to newBestJump
+      const newBestJump = {
+        jumpId,
+        jumpName,
+        totalSessions:
+          userProfile.jumps[existingBestJumpIndex].totalSessions || 1,
+        totalJumps:
+          userProfile.jumps[existingBestJumpIndex].totalJumps ||
+          jumpAttempts.filter((jump) => jump.completed).length,
+        bestJump,
+        unit: "in",
+      };
+
       if (
         userBestJump === undefined ||
         bestJump > (userBestJump?.bestJump || 0)
       ) {
         setNewPersonalBest(true);
+      }
 
-        const newBestJump = {
+      if (existingBestJumpIndex !== -1) {
+        userProfile.jumps[existingBestJumpIndex] = newBestJump;
+      } else {
+        userProfile.jumps.push(newBestJump);
+      }
+
+      await runTransaction(db, async (transaction) => {
+        transaction.update(userRef, { jumps: userProfile.jumps });
+
+        const jumpSessionsRef = collection(userRef, "jumpSessions");
+        const jumpSessionData = {
           jumpId,
           jumpName,
           bestJump,
-          averageJump,
           unit: "in",
+          date: new Date(),
         };
 
-        const existingBestJumpIndex = userProfile.jumps.findIndex(
-          (bestJump: any) => bestJump.jumpId === jumpId
-        );
+        await addDoc(jumpSessionsRef, jumpSessionData);
+      });
 
-        if (existingBestJumpIndex !== -1) {
-          userProfile.jumps[existingBestJumpIndex] = newBestJump;
-        } else {
-          userProfile.jumps.push(newBestJump);
-        }
-
-        await runTransaction(db, async (transaction) => {
-          transaction.update(userRef, { jumps: userProfile.jumps });
-
-          const jumpSessionsRef = collection(userRef, "jumpSessions");
-          const jumpSessionData = {
-            jumpId,
-            jumpName,
-            bestJump,
-            unit: "in",
-            date: new Date(),
-          };
-          await addDoc(jumpSessionsRef, jumpSessionData);
-        });
-
-        setIsModalVisible(true);
-      }
+      console.log("transaction done");
     } catch (error) {
       console.error("Error updating user data:", error);
     }
+
+    setIsModalVisible(true);
+  };
+
+  const handleFinishModal = () => {
+    setIsModalVisible(false);
+    setJumpAttempts(initialJumpAttempts);
+    setNewPersonalBest(false);
+    setSession({
+      active: false,
+      workoutPlan: null,
+    });
+    router.push("/");
   };
 
   const handleCancelTraining = () => {
@@ -252,6 +283,7 @@ export default function Train() {
       <CustomModal
         visible={isModalVisible}
         hideModal={() => setIsModalVisible(false)}
+        onHandlePress={handleFinishModal}
         title={
           newPersonalBest
             ? modalState.finishedBest.title

@@ -6,6 +6,7 @@ interface CustomModalProps {
   hideModal: () => void;
   title: string;
   content: React.ReactNode;
+  onHandlePress: () => void;
 }
 
 const CustomModal = ({
@@ -13,6 +14,7 @@ const CustomModal = ({
   hideModal,
   content,
   title,
+  onHandlePress,
 }: CustomModalProps) => {
   const theme = useTheme();
   return (
@@ -38,7 +40,7 @@ const CustomModal = ({
           </View>
           <View>{content}</View>
           <View>
-            <Button mode="contained" style={{ marginTop: 30 }} onPress={hideModal}>
+            <Button mode="contained" style={{ marginTop: 30 }} onPress={onHandlePress}>
               Close
             </Button>
           </View>

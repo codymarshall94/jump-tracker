@@ -3,11 +3,8 @@ import {
   ActivityIndicator,
   Avatar,
   Button,
-  Divider,
-  List,
 } from "react-native-paper";
 import { Text, useTheme } from "react-native-paper";
-import { FlatList } from "react-native-gesture-handler";
 import LineChart from "../../components/line-chart/LineChart";
 import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";

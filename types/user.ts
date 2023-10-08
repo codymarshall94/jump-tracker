@@ -9,6 +9,8 @@ export interface UserProfile {
 export interface UserJump {
   jumpId: string;
   jumpName: string;
+  totalSessions?: number;
+  totalJumps?: number;
   bestJump: number;
   average?: number;
   unit: string;
