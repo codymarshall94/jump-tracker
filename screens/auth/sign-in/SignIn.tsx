@@ -62,7 +62,14 @@ export default function SignIn() {
           value={password}
           onChangeText={(text) => setPassword(text)}
         />
-        <Link href="/(auth)/forgot-password">Forgot password?</Link>
+        <Link href="/(auth)/forgot-password">
+          <Text
+            variant="bodySmall"
+            style={{ color: theme.colors.onBackground }}
+          >
+            Forgot Password?
+          </Text>
+        </Link>
       </View>
       <View style={styles.providers}>
         <Text variant="bodyMedium">Sign in with</Text>

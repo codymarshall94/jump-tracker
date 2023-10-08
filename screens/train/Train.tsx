@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, View, FlatList } from "react-native";
-import { Button, Text, useTheme } from "react-native-paper";
+import { Appbar, Button, Text, useTheme } from "react-native-paper";
 import RepList from "./components/repList/RepList";
 import { useRouter } from "expo-router";
 import { useSession } from "../../contexts/SessionContext";
@@ -15,11 +15,9 @@ import {
   runTransaction,
 } from "firebase/firestore";
 import CustomModal from "../../components/modal/Modal";
-import {
-  calculateBestJump,
-  calculateAverageJump,
-  findBestJump,
-} from "../../utils/CalculateJump";
+import { findBestJump, calculateSessionStats } from "../../utils/CalculateJump";
+import { UserProfile } from "../../types/user";
+import MyDialog from "../../components/dialog/MyDialog";
 
 const modalState = {
   finished: {
@@ -49,8 +47,8 @@ export default function Train() {
   const [bestJump, setBestJump] = useState<number>(0);
   const [averageJump, setAverageJump] = useState<number>(0);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  const [isDialogVisible, setIsDialogVisible] = useState<boolean>(false);
   const [newPersonalBest, setNewPersonalBest] = useState<boolean>(false);
-
   // Refs
   const flatListRef = useRef<FlatList<SessionAttempt | null>>(null);
   // Variables
@@ -64,48 +62,48 @@ export default function Train() {
     }
   }, [session]);
 
+  const createNewJumpAttempt = (id: number) => ({
+    attemptId: id,
+    feet: "",
+    inches: "",
+    completed: false,
+  });
+
   const handleAddJumpRep = () => {
     setJumpAttempts((prevAttempts) => [
       ...prevAttempts,
-      {
-        attemptId: jumpAttempts.length,
-        feet: "",
-        inches: "",
-        completed: false,
-      },
+      createNewJumpAttempt(prevAttempts.length),
     ]);
     if (flatListRef.current) {
       flatListRef.current.scrollToEnd();
     }
   };
 
-  const handleRepInput = (id: number, feet: string, inches: string) => {
+  const validateInput = (feet: string, inches: string) => {
     const feetValue = Number(feet) || 0;
     const inchesValue = Number(inches) || 0;
 
-    if (
-      feetValue >= 0 &&
+    return feetValue >= 0 &&
       feetValue <= 30 &&
       inchesValue >= 0 &&
       inchesValue < 12
-    ) {
-      const totalDistance = feetValue + inchesValue / 12;
+      ? { feetValue, inchesValue, totalDistance: feetValue + inchesValue / 12 }
+      : null;
+  };
 
-      if (!session.workoutPlan) {
-        return;
-      }
-
+  const handleUpdateJumpRep = (id: number, feet: string, inches: string) => {
+    const inputValidation = validateInput(feet, inches);
+    if (inputValidation && session.workoutPlan) {
       const updatedJumpAttempts = jumpAttempts.map((rep) =>
         rep.attemptId === id
           ? {
               ...rep,
-              feet: feet,
-              inches: inches,
-              completed: !isNaN(totalDistance),
+              feet,
+              inches,
+              completed: !isNaN(inputValidation.totalDistance),
             }
           : rep
       );
-
       updateSession({
         ...session,
         workoutPlan: {
@@ -124,18 +122,21 @@ export default function Train() {
     );
   };
 
+  const handleOpenFinishDialog = () => {
+    setIsDialogVisible(true);
+  };
+
   // For Cody's reference. https://firebase.google.com/docs/firestore/manage-data/transactions
   // Transactions : either all of the operations succeed or none of them are applied.
   const handleFinishTraining = async () => {
+    setIsDialogVisible(false);
     if (!user || !jumpId || !jumpName) {
-      // Handle missing user or jump data
       console.error("User, jumpId, or jumpName is missing.");
       return;
     }
 
     try {
-      const sessionBestJump = calculateBestJump(jumpAttempts);
-      const newAverageJump = calculateAverageJump(jumpAttempts);
+      const { bestJump, averageJump } = calculateSessionStats(jumpAttempts);
 
       const userRef = doc(db, "users", user.uid);
       const userProfileDoc = await getDoc(userRef);
@@ -145,43 +146,44 @@ export default function Train() {
         return;
       }
 
-      const userProfile = userProfileDoc.data();
+      const userProfile = userProfileDoc.data() as UserProfile;
       const userBestJump = findBestJump(userProfile, jumpId);
 
-      setBestJump(sessionBestJump);
-      setAverageJump(newAverageJump);
+      setBestJump(bestJump);
+      setAverageJump(averageJump);
 
       if (
         userBestJump === undefined ||
-        sessionBestJump > userBestJump.distance
+        bestJump > (userBestJump?.bestJump || 0)
       ) {
         setNewPersonalBest(true);
 
         const newBestJump = {
           jumpId,
           jumpName,
-          distance: sessionBestJump,
+          bestJump,
+          averageJump,
           unit: "in",
         };
 
-        const existingBestJumpIndex = userProfile.bestJumps.findIndex(
+        const existingBestJumpIndex = userProfile.jumps.findIndex(
           (bestJump: any) => bestJump.jumpId === jumpId
         );
 
         if (existingBestJumpIndex !== -1) {
-          userProfile.bestJumps[existingBestJumpIndex] = newBestJump;
+          userProfile.jumps[existingBestJumpIndex] = newBestJump;
         } else {
-          userProfile.bestJumps.push(newBestJump);
+          userProfile.jumps.push(newBestJump);
         }
 
         await runTransaction(db, async (transaction) => {
-          transaction.update(userRef, { bestJumps: userProfile.bestJumps });
+          transaction.update(userRef, { jumps: userProfile.jumps });
 
           const jumpSessionsRef = collection(userRef, "jumpSessions");
           const jumpSessionData = {
             jumpId,
             jumpName,
-            sessionBestJump,
+            bestJump,
             unit: "in",
             date: new Date(),
           };
@@ -206,6 +208,20 @@ export default function Train() {
 
   return (
     <>
+      <Appbar.Header
+        style={{
+          backgroundColor: theme.colors.secondaryContainer,
+          justifyContent: "space-between",
+        }}
+      >
+        <Appbar.BackAction onPress={() => router.back()} />
+        <Appbar.Content title="Training Session" />
+        <Appbar.Action
+          icon="check-decagram"
+          onPress={handleOpenFinishDialog}
+          color={theme.colors.primary}
+        />
+      </Appbar.Header>
       <View
         style={{
           ...styles.container,
@@ -215,12 +231,11 @@ export default function Train() {
         <Text style={{ ...styles.title, color: theme.colors.onBackground }}>
           {jumpName}
         </Text>
-        <Button onPress={handleFinishTraining}>Finish</Button>
         <View style={styles.attemptsContainer}>
           <RepList
             jumpAttempts={jumpAttempts}
             maxInputLength={maxInputLength}
-            onRepInput={handleRepInput}
+            onRepInput={handleUpdateJumpRep}
             onCheckboxChange={handleCompleteRep}
             flatListRef={flatListRef}
           />
@@ -263,6 +278,21 @@ export default function Train() {
           </View>
         }
       />
+      <MyDialog
+        visible={isDialogVisible}
+        onDismiss={() => setIsDialogVisible(false)}
+        title="Confirm Complete"
+        content="This workout will be marked as complete"
+      >
+        <View style={styles.dialogBtnContainer}>
+          <Button mode="outlined" onPress={() => setIsDialogVisible(false)}>
+            Cancel
+          </Button>
+          <Button mode="contained" onPress={handleFinishTraining}>
+            Confirm
+          </Button>
+        </View>
+      </MyDialog>
     </>
   );
 }
@@ -290,5 +320,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "column",
     gap: 12,
+  },
+  dialogBtnContainer: {
+    gap: 12,
+    flexDirection: "row",
   },
 });

@@ -5,7 +5,7 @@ import { StyleSheet } from "react-native";
 interface MyDialogProps {
   visible: boolean;
   onDismiss: () => void;
-  content: string;
+  content?: string;
   children: React.ReactNode;
   title: string;
 }

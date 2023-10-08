@@ -2,28 +2,9 @@ import React, { useState, createContext, useContext, useEffect } from "react";
 import { auth, db } from "../config/firebase";
 import { User as FirebaseUser } from "firebase/auth";
 import { doc, getDoc, collection, query, getDocs } from "firebase/firestore";
+import { JumpSession, UserProfile } from "../types/user";
 
-interface UserProfile {
-  email: string;
-  firstname: string;
-  username: string;
-  bestJumps: UserBestJump[] | null;
-  jumpSessions: JumpSession[] | null;
-}
 
-interface UserBestJump {
-  jumpId: string;
-  jumpName: string;
-  distance: number;
-  unit: string;
-}
-
-interface JumpSession {
-  date: Date;
-  jumpId: string;
-  jumpName: string;
-  sessionHighestJump: number;
-}
 
 const AuthenticatedUserContext = createContext<{
   user: FirebaseUser | null;

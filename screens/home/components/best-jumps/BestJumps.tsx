@@ -22,7 +22,10 @@ export default function BestJumps({ data }: any) {
                 }}
                 left={() => <List.Icon icon="shoe-sneaker" />}
                 right={() => (
-                  <Text variant="labelLarge">{item.distance} in</Text>
+                  <Text variant="labelLarge">
+                    {item.bestJump}
+                    {item.unit}
+                  </Text>
                 )}
               />
               <Divider />

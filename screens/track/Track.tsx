@@ -47,7 +47,7 @@ export default function Track() {
       <Text variant="labelLarge" style={styles.chartHeader}>
         Recent Activity
       </Text>
-      <LineChart />
+      {/* <LineChart /> */}
     </SafeAreaView>
   );
 }

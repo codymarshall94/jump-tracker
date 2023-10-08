@@ -70,8 +70,7 @@ export default function TabLayout() {
         name="train/[jump]/index"
         options={{
           href: null,
-          title: "Training Session",
-          headerTitleAlign: "center",
+          headerShown: false,
         }}
       />
       <Tabs.Screen

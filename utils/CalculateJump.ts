@@ -1,42 +1,47 @@
 import { SessionAttempt } from "../types/session";
+import { UserJump } from "../types/user";
 
-export const calculateBestJump = (attempts: SessionAttempt[]): number => {
-  let sessionBestJump = 0;
+const calculateJumpInInches = (feet: string, inches: string) => {
+  const feetValue = Number(feet) || 0;
+  const inchesValue = Number(inches) || 0;
+  return feetValue * 12 + inchesValue;
+};
 
-  for (const jump of attempts) {
-    const feetValue = parseFloat(jump.feet) || 0;
-    const inchesValue = parseFloat(jump.inches) || 0;
-    const jumpInInches = feetValue * 12 + inchesValue;
+export const calculateSessionStats = (attempts: SessionAttempt[]) => {
+  let bestJump = 0;
+  let totalJump = 0;
+  let numCompletedAttempts = 0;
 
-    if (jumpInInches > sessionBestJump) {
-      sessionBestJump = jumpInInches;
+  attempts.forEach((attempt: SessionAttempt) => {
+    const { feet, inches, completed } = attempt;
+
+    if (completed) {
+      const jumpInInches = calculateJumpInInches(feet, inches);
+
+      if (jumpInInches > bestJump) {
+        bestJump = jumpInInches;
+      }
+
+      totalJump += jumpInInches;
+      numCompletedAttempts++;
     }
-  }
+  });
 
-  return sessionBestJump;
+  const averageJump =
+    numCompletedAttempts > 0 ? totalJump / numCompletedAttempts : 0;
+
+  return { bestJump, averageJump };
 };
 
-export const calculateAverageJump = (attempts: SessionAttempt[]): number => {
-  if (attempts.length === 0) return 0;
-
-  let totalJumpDistance = 0;
-
-  for (const jump of attempts) {
-    const feetValue = parseFloat(jump.feet) || 0;
-    const inchesValue = parseFloat(jump.inches) || 0;
-    const jumpInInches = feetValue * 12 + inchesValue;
-    totalJumpDistance += jumpInInches;
+export const findBestJump = (
+  userProfile: { jumps: UserJump[] },
+  jumpId: string
+) => {
+  if (!userProfile.jumps) {
+    userProfile.jumps = [];
   }
 
-  return totalJumpDistance / attempts.length;
-};
-
-export const findBestJump = (userProfile: any, jumpId: string): any => {
-  if (!userProfile.bestJumps) {
-    userProfile.bestJumps = [];
-  }
-
-  return userProfile.bestJumps.find(
-    (bestJump: any) => bestJump.jumpId === jumpId
+  return userProfile.jumps.find(
+    (bestJump: UserJump) => bestJump.jumpId === jumpId
   );
 };

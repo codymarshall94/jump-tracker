@@ -39,6 +39,7 @@ export default function SignUp() {
         username: user.displayName,
         firstName: firstName,
         email: email,
+        jumps: [],
       });
 
       router.replace("/(tabs)");

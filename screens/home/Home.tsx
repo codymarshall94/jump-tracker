@@ -64,13 +64,13 @@ function Home() {
       <Text variant="titleMedium" style={styles.sectionTitle}>
         Top Jumps
       </Text>
-      <BestJumps data={userProfile?.bestJumps} />
+      <BestJumps data={userProfile?.jumps} />
 
       <Text variant="titleMedium" style={styles.sectionTitle}>
         Recent Jumps
       </Text>
 
-      <LineChart />
+      {/* <LineChart /> */}
     </SafeAreaView>
   );
 }
