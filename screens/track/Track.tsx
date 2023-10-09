@@ -1,108 +1,98 @@
-import React from "react";
+import { useState, useEffect } from "react";
 import { StyleSheet, Dimensions, View } from "react-native";
-import { Text, useTheme } from "react-native-paper";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Appbar, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuthenticatedUser } from "../../contexts/AuthContext";
-import LineChart from "../../components/line-chart/LineChart";
+import { db } from "../../config/firebase";
+import {
+  DocumentData,
+  collection,
+  doc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
+import JumpPicker from "./components/JumpPicker/JumpPicker";
+import JumpSummary from "./components/JumpSummary/JumpSummary";
+import RecentActivity from "./components/recent-activity/RecentActivity";
 
 const screenWidth = Dimensions.get("window").width;
 
 export default function Track() {
   const theme = useTheme();
-  const { userProfile } = useAuthenticatedUser();
-  const broadJumpStats = userProfile?.jumps.find(
-    (jump) => jump.jumpId === "broad_jump"
+  const { userProfile, user } = useAuthenticatedUser();
+  const [selectedJumpStat, setSelectedJumpStat] = useState("broad_jump");
+  const [jumpSessions, setJumpSessions] = useState<DocumentData[]>([]);
+
+  const handleJumpStatChange = (jumpId: string) => {
+    setSelectedJumpStat(jumpId);
+  };
+
+  if (!userProfile || !user) {
+    return null;
+  }
+
+  const userDocRef = doc(db, "users", user?.uid);
+
+  const q = query(
+    collection(userDocRef, "jumpSessions"),
+    where("jumpId", "==", selectedJumpStat)
   );
 
-  return (
-    <SafeAreaView
-      style={{ ...styles.container, backgroundColor: theme.colors.background }}
-    >
-      <Text variant="headlineMedium" style={styles.title}>
-        Broad Jump
-      </Text>
-      <View style={styles.circleContainer}>
-        <View style={styles.circle}>
-          <MaterialCommunityIcons
-            name="shoe-sneaker"
-            size={32}
-            color={theme.colors.onBackground}
-          />
+  const fetchJumpSessions = async () => {
+    const querySnapshot = await getDocs(q);
+    const sessions = querySnapshot.docs.map((doc) => doc.data());
+    if (sessions.length > 0) {
+      sessions.sort((a, b) => b.date.toDate() - a.date.toDate());
+    }
 
-          <Text variant="labelLarge" style={styles.sessionAmount}>
-            {broadJumpStats?.totalSessions || "N/A"}
-          </Text>
-          <Text variant="labelMedium">Sessions</Text>
-        </View>
+    setJumpSessions(sessions);
+  };
+
+  useEffect(() => {
+    fetchJumpSessions();
+  }, [selectedJumpStat]);
+
+  const jumpStats = userProfile?.jumps.find(
+    (jump) => jump.jumpId === selectedJumpStat
+  );
+
+  if (!jumpStats) {
+    return null;
+  }
+
+  const { totalSessions, totalJumps, bestJump, unit, average } = jumpStats;
+
+  return (
+    <>
+      <Appbar.Header>
+        <Appbar.Content title="ANALYTICS" style={{ alignItems: "center" }} />
+      </Appbar.Header>
+      <View
+        style={{
+          ...styles.container,
+          backgroundColor: theme.colors.background,
+        }}
+      >
+        <JumpPicker
+          selectedJumpStat={selectedJumpStat}
+          handleJumpStatChange={handleJumpStatChange}
+        />
+        <JumpSummary
+          totalSessions={totalSessions}
+          totalJumps={totalJumps}
+          bestJump={bestJump}
+          unit={unit}
+          average={average}
+        />
+        <RecentActivity jumpSessions={jumpSessions} theme={theme} />
       </View>
-      <View style={styles.totals}>
-        <View style={styles.best}>
-          <Text variant="bodyLarge">{broadJumpStats?.bestJump || "N/A"}</Text>
-          <Text variant="labelLarge">Best Jump</Text>
-        </View>
-        <View style={styles.verticalDivider} />
-        <View style={styles.average}>
-          <Text variant="bodyLarge">{broadJumpStats?.average || "N/A"}</Text>
-          <Text variant="labelLarge">Average Jump</Text>
-        </View>
-      </View>
-      <Text variant="labelLarge" style={styles.chartHeader}>
-        Recent Activity
-      </Text>
-      {/* <LineChart /> */}
-    </SafeAreaView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  title: {
-    textAlign: "center",
-    fontWeight: "bold",
-    paddingVertical: 12,
-  },
-  circleContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  circle: {
-    height: 150,
-    width: 150,
-    borderWidth: 8,
-    borderColor: "#6B4FAA",
-    borderRadius: 100,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  sessionAmount: {
-    fontWeight: "bold",
-  },
-  totals: {
-    position: "relative",
-    marginVertical: 42,
-    paddingHorizontal: 24,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  verticalDivider: {
-    height: 50,
-    width: 1,
-    backgroundColor: "#BBBDD0",
-    position: "absolute",
-    left: screenWidth / 2,
-  },
-  best: {
-    alignItems: "flex-start",
-  },
-  average: {
-    alignItems: "flex-end",
-  },
-  chartHeader: {
-    paddingLeft: 24,
-    paddingVertical: 12,
-    fontWeight: "bold",
   },
 });
