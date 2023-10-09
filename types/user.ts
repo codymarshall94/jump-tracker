@@ -20,5 +20,6 @@ export interface JumpSession {
   date: Date;
   jumpId: string;
   jumpName: string;
-  sessionHighestJump: number;
+  bestJump: number;
+  unit: string;
 }
