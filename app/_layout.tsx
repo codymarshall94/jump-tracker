@@ -49,14 +49,6 @@ function RootLayoutNav() {
       <SessionProvider>
         <PaperProvider>
           <Slot />
-          {/* <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="settings/index"
-                options={{ headerShown: false, presentation: "modal" }}
-              />
-              <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-            </Stack> */}
         </PaperProvider>
       </SessionProvider>
     </AuthenticatedUserProvider>
