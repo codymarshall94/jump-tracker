@@ -1,6 +1,11 @@
-import React from "react";
 import { View, StyleSheet } from "react-native";
-import { TextInput, Checkbox, Text } from "react-native-paper";
+import {
+  TextInput,
+  Checkbox,
+  Text,
+  IconButton,
+  MD3Colors,
+} from "react-native-paper";
 import { SessionAttempt } from "../../../../../../types/session";
 
 interface RepInputProps {
@@ -9,6 +14,7 @@ interface RepInputProps {
   maxInputLength: number;
   onInputChange: (id: number, feet: string, inches: string) => void;
   onCheckboxChange: (id: number, checked: boolean) => void;
+  onDelete: (id: number) => void;
 }
 
 const limitInput = ({
@@ -40,6 +46,7 @@ export default function RepInput({
   maxInputLength,
   onInputChange,
   onCheckboxChange,
+  onDelete,
 }: RepInputProps) {
   return (
     <View style={styles.attempt}>
@@ -80,6 +87,7 @@ export default function RepInput({
           status={attempt.completed ? "checked" : "unchecked"}
           onPress={() => onCheckboxChange(id, !attempt.completed)}
         />
+        <IconButton icon="delete" iconColor={MD3Colors.error40} onPress={() => onDelete(id)} />
       </View>
     </View>
   );
@@ -102,5 +110,8 @@ const styles = StyleSheet.create({
   },
   inputSeparator: {
     paddingHorizontal: 8,
+  },
+  deleteButton: {
+    color: "red", // Style the delete button as needed
   },
 });

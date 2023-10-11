@@ -4,20 +4,23 @@ import EmptyState from "../../../../components/empty-state/EmptyState";
 
 export default function BestJumps({ data }: any) {
   const theme = useTheme();
+
+  const limitedData = data ? data.slice(0, 3) : [];
+
   return (
     <View>
-      {!data || data.length === 0 ? (
-        <EmptyState message="Track a jump to view it here" />
+      {!limitedData || limitedData.length === 0 ? (
+        <EmptyState message="No Jumps Tracked" />
       ) : (
         <FlatList
-          data={data}
+          data={limitedData}
           keyExtractor={(item) => item.jumpName}
           renderItem={({ item }) => (
             <>
               <List.Item
                 title={item.jumpName}
                 style={{
-                  backgroundColor: theme.colors.onSecondary,
+                  backgroundColor: theme.colors.secondaryContainer,
                   paddingHorizontal: 12,
                 }}
                 left={() => <List.Icon icon="shoe-sneaker" />}
@@ -28,7 +31,7 @@ export default function BestJumps({ data }: any) {
                   </Text>
                 )}
               />
-              <Divider />
+              <Divider style={{ backgroundColor: theme.colors.onSecondaryContainer }} />
             </>
           )}
         />

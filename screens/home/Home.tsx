@@ -1,19 +1,16 @@
 import { View } from "react-native";
-import {
-  ActivityIndicator,
-  Avatar,
-  Button,
-} from "react-native-paper";
+import { ActivityIndicator, Appbar, Button } from "react-native-paper";
 import { Text, useTheme } from "react-native-paper";
-import LineChart from "../../components/line-chart/LineChart";
-import { Link, useRouter } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { useSession } from "../../contexts/SessionContext";
 import { useAuthenticatedUser } from "../../contexts/AuthContext";
 import BestJumps from "./components/best-jumps/BestJumps";
+import RecentActivity from "../track/components/recent-activity/RecentActivity";
+import { useJumpSessions } from "../../contexts/JumpSessionsContext";
 
 function Home() {
   const { user, userProfile, loading } = useAuthenticatedUser();
+  const { jumpSessions } = useJumpSessions();
   const { session } = useSession();
   const router = useRouter();
   const theme = useTheme();
@@ -27,48 +24,57 @@ function Home() {
   }
 
   return (
-    <SafeAreaView
-      style={{ ...styles.container, backgroundColor: theme.colors.background }}
-    >
-      <View style={styles.avatarContainer}>
-        <Link href="/settings/settings">
-          <Avatar.Icon size={42} icon="account" />
-        </Link>
+    <>
+      <Appbar.Header style={{ justifyContent: "flex-end" }}>
+        <Appbar.Action
+          icon="cog"
+          onPress={() => router.push("/settings/settings")}
+        />
+      </Appbar.Header>
+      <View
+        style={{
+          ...styles.container,
+          backgroundColor: theme.colors.background,
+        }}
+      >
+        <Text variant="headlineLarge" style={styles.greeting}>
+          Good Morning, {user?.displayName}
+        </Text>
+        <Text variant="bodyLarge" style={styles.subText}>
+          Stay on track and keep progressing
+        </Text>
+        <View style={styles.btnContainer}>
+          <Button
+            mode="contained"
+            style={styles.button}
+            labelStyle={styles.buttonLabel}
+            onPress={() =>
+              router.push(
+                session.active
+                  ? `/train/${session.workoutPlan?.jumpId}`
+                  : "/train"
+              )
+            }
+          >
+            {session.active ? "Continue Session" : "Start A New Session"}
+          </Button>
+        </View>
+
+        <Text variant="titleMedium" style={styles.sectionTitle}>
+          Top Jumps
+        </Text>
+        <BestJumps data={userProfile?.jumps} />
+
+        <Text variant="titleMedium" style={styles.sectionTitle}>
+          Recent Jumps
+        </Text>
+        <RecentActivity
+          jumpSessions={jumpSessions}
+          maxLength={3}
+          showName={true}
+        />
       </View>
-      <Text variant="headlineLarge" style={styles.greeting}>
-        Good Morning, {user?.displayName}
-      </Text>
-      <Text variant="bodyLarge" style={styles.subText}>
-        Stay on track and keep progressing
-      </Text>
-      <View style={styles.btnContainer}>
-        <Button
-          mode="contained"
-          style={styles.button}
-          labelStyle={styles.buttonLabel}
-          onPress={() =>
-            router.push(
-              session.active
-                ? `/train/${session.workoutPlan?.jumpId}`
-                : "/train"
-            )
-          }
-        >
-          {session.active ? "Continue Session" : "Start A New Session"}
-        </Button>
-      </View>
-
-      <Text variant="titleMedium" style={styles.sectionTitle}>
-        Top Jumps
-      </Text>
-      <BestJumps data={userProfile?.jumps} />
-
-      <Text variant="titleMedium" style={styles.sectionTitle}>
-        Recent Jumps
-      </Text>
-
-      {/* <LineChart /> */}
-    </SafeAreaView>
+    </>
   );
 }
 

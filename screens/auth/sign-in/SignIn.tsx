@@ -71,15 +71,6 @@ export default function SignIn() {
           </Text>
         </Link>
       </View>
-      <View style={styles.providers}>
-        <Text variant="bodyMedium">Sign in with</Text>
-        <Button
-          mode="contained"
-          icon={require("../../../assets/icons/icons8-google-48.png")}
-        >
-          Google
-        </Button>
-      </View>
       <View style={styles.buttonContainer}>
         <Button mode="contained" onPress={handleSignIn}>
           <Text style={{ color: theme.colors.onPrimary }} variant="bodyMedium">

@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet } from "react-native";
-import { useTheme } from "react-native-paper";
+import { View, StyleSheet } from "react-native";
+import { useTheme, Text, IconButton } from "react-native-paper";
 
 const EmptyState = ({ message }: any) => {
   const theme = useTheme();
@@ -8,10 +8,10 @@ const EmptyState = ({ message }: any) => {
     <View
       style={{
         ...styles.container,
-        backgroundColor: theme.colors.secondaryContainer,
       }}
     >
-      <Text style={{ color: theme.colors.onBackground, fontSize: 16 }}>
+      <IconButton icon="file-hidden" size={48} />
+      <Text variant="bodyMedium" style={{ color: theme.colors.onBackground }}>
         {message}
       </Text>
     </View>

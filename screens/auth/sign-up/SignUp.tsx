@@ -3,6 +3,7 @@ import {
   UserCredential,
   createUserWithEmailAndPassword,
   updateProfile,
+  
 } from "firebase/auth";
 import { View, StyleSheet } from "react-native";
 import { Appbar, useTheme } from "react-native-paper";

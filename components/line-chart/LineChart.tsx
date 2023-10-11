@@ -1,46 +1,49 @@
-import { Dimensions, Text } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Dimensions } from "react-native";
 import { LineChart } from "react-native-chart-kit";
-import { useState, useEffect } from "react";
 import { useTheme } from "react-native-paper";
-import { useAuthenticatedUser } from "../../contexts/AuthContext";
 import EmptyState from "../empty-state/EmptyState";
+import { DocumentData } from "firebase/firestore";
 
-// This LineChart will break the application if it has more than 10 points on the chart
+const screenWidth = Dimensions.get("window").width;
 
-export default function LineChartData() {
+const LineChartComponent = ({
+  jumpSessions,
+}: {
+  jumpSessions: DocumentData[];
+}) => {
   const theme = useTheme();
-  const [selectedData, setSelectedData] = useState<string>("broad_jump");
-  const { userProfile, loading } = useAuthenticatedUser();
-  const [chartData, setChartData] = useState<any>(null);
-
-  const screenWidth = Dimensions.get("window").width;
+  const [chartData, setChartData] = useState(null);
 
   useEffect(() => {
-    if (userProfile?.jumpSessions && selectedData) {
-      const filteredJumpSessions = userProfile.jumpSessions
-        .filter((session) => session.jumpId === selectedData)
-        .slice(0, 7);
+    if (jumpSessions) {
+      // Group and aggregate the jump data by date
+      const aggregatedData = jumpSessions.reduce((result, session) => {
+        const date = session.date.toDate(); // Assuming date is a Firebase Timestamp
+        const formattedDate = date.toISOString().split("T")[0]; // Format date as "yyyy-MM-dd"
+        if (!result[formattedDate]) {
+          result[formattedDate] = { date: formattedDate, jumps: [] };
+        }
+        result[formattedDate].jumps.push(session.bestJump);
+        return result;
+      }, {});
 
-      if (filteredJumpSessions.length > 0) {
-        const data = {
-          labels: [],
-          datasets: [
-            {
-              data: filteredJumpSessions.map(
-                (session) => session.sessionHighestJump
-              ),
-            },
-          ],
-        };
+      // Prepare the data for the chart
+      const chartData = {
+        labels: Object.keys(aggregatedData),
+        datasets: [
+          {
+            data: Object.values(aggregatedData).map(
+              (entry) =>
+                entry.jumps.reduce((a, b) => a + b, 0) / entry.jumps.length
+            ),
+          },
+        ],
+      };
 
-        setChartData(data);
-      }
+      setChartData(chartData);
     }
-  }, [userProfile, selectedData]);
-
-  if (loading) {
-    return <Text>Loading...</Text>;
-  }
+  }, [jumpSessions]);
 
   if (!chartData) {
     return <EmptyState message="No Sessions Tracked" />;
@@ -72,4 +75,6 @@ export default function LineChartData() {
       bezier={true}
     />
   );
-}
+};
+
+export default LineChartComponent;

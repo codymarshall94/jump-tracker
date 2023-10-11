@@ -1,25 +1,29 @@
 "use client";
 
-import { useTheme } from "react-native-paper";
+import { Appbar, useTheme } from "react-native-paper";
 import { FlatList } from "react-native-gesture-handler";
-import { Divider, List, Switch, Text } from "react-native-paper";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { StyleSheet, Pressable } from "react-native";
+import { Divider, List, Switch } from "react-native-paper";
+import { StyleSheet, Pressable, View } from "react-native";
 import { useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "../../config/firebase";
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuthenticatedUser } from "../../contexts/AuthContext";
 
 export default function Settings() {
   const theme = useTheme();
   const router = useRouter();
   const [isSwitchOn, setIsSwitchOn] = useState(false);
+  const { setUserProfile } = useAuthenticatedUser();
 
   const onToggleSwitch = () => setIsSwitchOn(!isSwitchOn);
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    await AsyncStorage.removeItem("sessions");
     signOut(auth)
       .then(() => {
+        setUserProfile(null);
         router.push("/(auth)/get-started");
       })
       .catch((error) => {
@@ -31,11 +35,8 @@ export default function Settings() {
 
   const settings = [
     "Edit Profile",
-    "Invite Friend",
-    "Push Notification",
     "Give Feedback",
     "Help and Support",
-    "About Us",
     "Log Out",
   ];
 
@@ -51,38 +52,42 @@ export default function Settings() {
   });
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <Text
-        style={{ color: theme.colors.onBackground, padding: 12 }}
-        variant="headlineLarge"
+    <>
+      <Appbar.Header
+        style={{
+          backgroundColor: theme.colors.secondaryContainer,
+        }}
       >
-        Settings
-      </Text>
-      <FlatList
-        data={settings}
-        keyExtractor={(item) => item}
-        renderItem={({ item }) => (
-          <>
-            <Pressable
-              style={styles.listItem}
-              onPress={item === "Log Out" ? handleSignOut : null}
-            >
-              <List.Item
-                title={item}
-                style={{ backgroundColor: theme.colors.surface }}
-              />
-              {item === "Push Notification" ? (
-                <Switch
-                  value={isSwitchOn}
-                  onValueChange={onToggleSwitch}
-                  color={theme.colors.primary}
+        <Appbar.BackAction onPress={() => router.back()} />
+        <Appbar.Content title="Settings" />
+      </Appbar.Header>
+      <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+        <FlatList
+          data={settings}
+          keyExtractor={(item) => item}
+          renderItem={({ item }) => (
+            <>
+              <Pressable
+                style={styles.listItem}
+                onPress={item === "Log Out" ? handleSignOut : null}
+              >
+                <List.Item
+                  title={item}
+                  style={{ backgroundColor: theme.colors.surface }}
                 />
-              ) : null}
-            </Pressable>
-            <Divider />
-          </>
-        )}
-      />
-    </SafeAreaView>
+                {item === "Push Notification" ? (
+                  <Switch
+                    value={isSwitchOn}
+                    onValueChange={onToggleSwitch}
+                    color={theme.colors.primary}
+                  />
+                ) : null}
+              </Pressable>
+              <Divider />
+            </>
+          )}
+        />
+      </View>
+    </>
   );
 }

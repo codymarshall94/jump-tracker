@@ -23,6 +23,7 @@ export default function JumpList() {
   const hideDialog = () => setDialogVisible(false);
 
   const continueSession = () => {
+    console.log("continue session");
     router.push(`/train/${session.workoutPlan?.jumpId}`);
     hideDialog();
   };

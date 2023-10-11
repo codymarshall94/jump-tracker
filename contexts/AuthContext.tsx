@@ -1,21 +1,21 @@
-import React, { useState, createContext, useContext, useEffect } from "react";
+import { useState, createContext, useContext, useEffect } from "react";
 import { auth, db } from "../config/firebase";
 import { User as FirebaseUser } from "firebase/auth";
-import { doc, getDoc, collection, query, getDocs } from "firebase/firestore";
-import { JumpSession, UserProfile } from "../types/user";
-
-
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import { UserProfile } from "../types/user";
 
 const AuthenticatedUserContext = createContext<{
   user: FirebaseUser | null;
   setUser: (user: FirebaseUser | null) => void;
   loading: boolean;
   userProfile: UserProfile | null;
+  setUserProfile: (userProfile: UserProfile | null) => void;
 }>({
   user: null,
   setUser: () => {},
   loading: true,
   userProfile: null,
+  setUserProfile: () => {},
 });
 
 interface AuthenticatedUserProviderProps {
@@ -38,17 +38,13 @@ export const AuthenticatedUserProvider: React.FC<
 
         if (userDoc.exists()) {
           const userData = userDoc.data() as UserProfile;
-          const jumpSessionsRef = collection(userDocRef, "jumpSessions");
-          const jumpSessionsQuery = query(jumpSessionsRef);
-          const jumpSessionsSnapshot = await getDocs(jumpSessionsQuery);
-          const jumpSessionsData = jumpSessionsSnapshot.docs.map(
-            (doc) => doc.data() as JumpSession
-          );
-
-          userData.jumpSessions = jumpSessionsData;
-
           setUserProfile(userData);
           setLoading(false);
+
+          onSnapshot(userDocRef, (snapshot) => {
+            const updatedUserData = snapshot.data() as UserProfile;
+            setUserProfile(updatedUserData);
+          });
         } else {
           console.log("User does not exist");
         }
@@ -73,7 +69,7 @@ export const AuthenticatedUserProvider: React.FC<
 
   return (
     <AuthenticatedUserContext.Provider
-      value={{ user, setUser, loading, userProfile }}
+      value={{ user, setUser, loading, userProfile, setUserProfile }}
     >
       {children}
     </AuthenticatedUserContext.Provider>

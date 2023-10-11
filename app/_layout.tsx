@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { PaperProvider } from "react-native-paper";
 import { SessionProvider } from "../contexts/SessionContext";
 import { AuthenticatedUserProvider } from "../contexts/AuthContext";
+import { JumpSessionsProvider } from "../contexts/JumpSessionsContext";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -46,11 +47,13 @@ export default function RootLayout() {
 function RootLayoutNav() {
   return (
     <AuthenticatedUserProvider>
-      <SessionProvider>
-        <PaperProvider>
-          <Slot />
-        </PaperProvider>
-      </SessionProvider>
+      <JumpSessionsProvider>
+        <SessionProvider>
+          <PaperProvider>
+            <Slot />
+          </PaperProvider>
+        </SessionProvider>
+      </JumpSessionsProvider>
     </AuthenticatedUserProvider>
   );
 }
