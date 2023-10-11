@@ -12,6 +12,7 @@ interface StepProps {
   setValue: (text: string) => void;
   title: string;
   isPasswordStep?: boolean;
+  placeholder?: string;
   validLength?: boolean;
   hasUppercase?: boolean;
   hasNumber?: boolean;
@@ -25,6 +26,7 @@ export default function SignUpStep({
   setValue,
   title,
   isPasswordStep = false,
+  placeholder = "",
   validLength,
   hasUppercase,
   hasNumber,
@@ -39,7 +41,7 @@ export default function SignUpStep({
         {title}
       </Text>
       <TextInput
-        placeholder={`Enter your ${isPasswordStep ? "password" : "email"}`}
+        placeholder={placeholder}
         autoCapitalize={isPasswordStep ? "none" : "sentences"}
         autoCorrect={!isPasswordStep}
         secureTextEntry={isPasswordStep}

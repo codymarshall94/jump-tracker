@@ -126,6 +126,7 @@ export default function SignUp() {
             title="What is your email"
             handleNextStep={handleNextStep}
             errorMessage={errorMessage}
+            placeholder="Enter your email address"
           />
         )}
         {step === 2 && (
@@ -140,6 +141,7 @@ export default function SignUp() {
             isPasswordStep
             handleNextStep={handleNextStep}
             errorMessage={errorMessage}
+            placeholder="Enter your password"
           />
         )}
         {step === 3 && (
@@ -149,6 +151,7 @@ export default function SignUp() {
             title="What is your first name"
             handleNextStep={handleNextStep}
             errorMessage={errorMessage}
+            placeholder="Enter your first name"
           />
         )}
         {step === 4 && <FinishSignUp handlePress={handleSignUp} />}
